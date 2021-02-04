@@ -51,7 +51,7 @@ public class ES2FileFtpDemo {
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
 		fileFtpOupputConfig.setBackupSuccessFiles(true);
-		fileFtpOupputConfig.setTransferEmptyFiles(false);
+		fileFtpOupputConfig.setTransferEmptyFiles(true);
 		fileFtpOupputConfig.setFtpIP(ftpIp);
 		fileFtpOupputConfig.setFileDir("D:\\workdir");
 		fileFtpOupputConfig.setFtpPort(5322);
@@ -60,6 +60,7 @@ public class ES2FileFtpDemo {
 		fileFtpOupputConfig.setFtpPassword("ecs@123");
 		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
+		fileFtpOupputConfig.setFailedFileResendInterval(-1);
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( int fileSeq) {
@@ -86,6 +87,9 @@ public class ES2FileFtpDemo {
 			@Override
 			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
 				SerialUtil.normalObject2json(record.getDatas(),builder);
+				String data = (String)taskContext.getTaskContext().getTaskData("data");
+//				System.out.println(data);
+
 			}
 		});
 		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
@@ -119,22 +123,8 @@ public class ES2FileFtpDemo {
 		importBuilder.addCallInterceptor(new CallInterceptor() {
 			@Override
 			public void preCall(TaskContext taskContext) {
-				System.out.println("preCall");
-			}
-
-			@Override
-			public void afterCall(TaskContext taskContext) {
-				System.out.println("afterCall");
-			}
-
-			@Override
-			public void throwException(TaskContext taskContext, Exception e) {
-				System.out.println("throwException");
-			}
-		}).addCallInterceptor(new CallInterceptor() {
-			@Override
-			public void preCall(TaskContext taskContext) {
 				System.out.println("preCall 1");
+				taskContext.addTaskData("data","testData");
 			}
 
 			@Override
@@ -198,7 +188,8 @@ public class ES2FileFtpDemo {
 //					context.setDrop(true);
 //					return;
 //				}
-
+				String data = (String)context.getTaskContext().getTaskData("data");
+//				System.out.println(data);
 
 //				context.addFieldValue("author","duoduo");//将会覆盖全局设置的author变量
 				context.addFieldValue("title","解放");
