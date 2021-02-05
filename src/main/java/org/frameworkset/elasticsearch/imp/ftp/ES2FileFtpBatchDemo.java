@@ -62,6 +62,7 @@ public class ES2FileFtpBatchDemo {
 		fileFtpOupputConfig.setRemoteFileDir("/");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
 		fileFtpOupputConfig.setFailedFileResendInterval(100000);
+		fileFtpOupputConfig.setMaxFileRecordSize(1000);
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( TaskContext taskContext,int fileSeq) {
