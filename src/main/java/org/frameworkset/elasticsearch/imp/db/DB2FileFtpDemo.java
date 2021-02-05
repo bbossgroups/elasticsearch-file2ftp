@@ -1,4 +1,4 @@
-package org.frameworkset.elasticsearch.imp;
+package org.frameworkset.elasticsearch.imp.db;
 /**
  * Copyright 2020 bboss
  * <p>
@@ -15,38 +15,34 @@ package org.frameworkset.elasticsearch.imp;
  * limitations under the License.
  */
 
-import com.frameworkset.util.SimpleStringUtil;
 import org.frameworkset.elasticsearch.serial.SerialUtil;
 import org.frameworkset.runtime.CommonLauncher;
 import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
 import org.frameworkset.tran.context.Context;
-import org.frameworkset.tran.input.fileftp.es.ES2FileFtpExportBuilder;
+import org.frameworkset.tran.input.fileftp.db.DB2FileFtpImportBuilder;
 import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
 import org.frameworkset.tran.output.fileftp.ReocordGenerator;
 import org.frameworkset.tran.schedule.CallInterceptor;
-import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
 
 import java.io.Writer;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 /**
- * <p>Description: elasticsearch到sftp数据上传案例</p>
+ * <p>Description: database到sftp数据上传案例</p>
  * <p></p>
  * <p>Copyright (c) 2020</p>
  * @Date 2021/2/1 14:39
  * @author biaoping.yin
  * @version 1.0
  */
-public class ES2FileFtpDemo {
+public class DB2FileFtpDemo {
 	public static void main(String[] args){
-		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
+		DB2FileFtpImportBuilder importBuilder = new DB2FileFtpImportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
@@ -60,14 +56,11 @@ public class ES2FileFtpDemo {
 		fileFtpOupputConfig.setFtpPassword("ecs@123");
 		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
-		fileFtpOupputConfig.setFailedFileResendInterval(-1);
+		fileFtpOupputConfig.setFailedFileResendInterval(100000);
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName(TaskContext taskContext, int fileSeq) {
-				String formate = "yyyyMMddHHmm";
-				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
-				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-				String time = dateFormat.format(new Date());
+				String time = (String)taskContext.getTaskData("time");
 				String _fileSeq = fileSeq+"";
 				int t = 6 - _fileSeq.length();
 				if(t > 0){
@@ -93,24 +86,11 @@ public class ES2FileFtpDemo {
 			}
 		});
 		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
-		importBuilder.setIncreamentEndOffset(300);//单位秒
+//		importBuilder.setIncreamentEndOffset(300);//单位秒
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
 		importBuilder
-				.setDsl2ndSqlFile("dsl2ndSqlFile.xml")
-				.setDslName("scrollQuery")
-				.setScrollLiveTime("10m")
-//				.setSliceQuery(true)
-//				.setSliceSize(5)
-//				.setQueryUrl("dbdemo/_search")
-				.setQueryUrlFunction((Date lastTime)->{
-					return "dbdemo/_search";
-//					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
-				})
-				.addParam("fullImport",false)
-//				//添加dsl中需要用到的参数及参数值
-				.addParam("var1","v1")
-				.addParam("var2","v2")
-				.addParam("var3","v3");
+				.setSqlFilepath("sql.xml")
+				.setSqlName("demoexportFull");
 
 		//定时任务配置，
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
@@ -123,8 +103,11 @@ public class ES2FileFtpDemo {
 		importBuilder.addCallInterceptor(new CallInterceptor() {
 			@Override
 			public void preCall(TaskContext taskContext) {
-				System.out.println("preCall 1");
-				taskContext.addTaskData("data","testData");
+				String formate = "yyyyMMddHHmmss";
+				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
+				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+				String time = dateFormat.format(new Date());
+				taskContext.addTaskData("time",time);
 			}
 
 			@Override
@@ -139,14 +122,14 @@ public class ES2FileFtpDemo {
 		});
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
-		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
-		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2fileftp_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
-//		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
-		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
-		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
-//		importBuilder.setLastValue(new Date());
+//		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
+//		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
+//		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
+//		importBuilder.setLastValueStorePath("db2fileftp_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+////		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
+//		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
+//		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
+////		importBuilder.setLastValue(new Date());
 		//增量配置结束
 
 		//映射和转换配置开始
@@ -199,21 +182,8 @@ public class ES2FileFtpDemo {
 				//上述三个属性已经放置到docInfo中，如果无需再放置到索引文档中，可以忽略掉这些属性
 //				context.addIgnoreFieldMapping("author");
 
-//				//修改字段名称title为新名称newTitle，并且修改字段的值
-//				context.newName2ndData("title","newTitle",(String)context.getValue("title")+" append new Value");
-				/**
-				 * 获取ip对应的运营商和区域信息
-				 */
-				Map ipInfo = (Map)context.getValue("ipInfo");
-				if(ipInfo != null)
-					context.addFieldValue("ipinfo", SimpleStringUtil.object2json(ipInfo));
-				else{
-					context.addFieldValue("ipinfo", "");
-				}
-				DateFormat dateFormat = SerialUtil.getDateFormateMeta().toDateFormat();
-//				Date optime = context.getDateValue("LOG_OPERTIME",dateFormat);
-//				context.addFieldValue("logOpertime",optime);
-				context.addFieldValue("newcollecttime",new Date());
+
+				context.addFieldValue("collecttime",new Date());
 
 				/**
 				 //关联查询数据,单值查询

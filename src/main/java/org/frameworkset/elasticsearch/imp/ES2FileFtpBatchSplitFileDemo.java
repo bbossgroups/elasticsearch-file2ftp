@@ -44,7 +44,7 @@ import java.util.Map;
  * @author biaoping.yin
  * @version 1.0
  */
-public class ES2FileFtpDemo {
+public class ES2FileFtpBatchSplitFileDemo {
 	public static void main(String[] args){
 		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
@@ -61,13 +61,12 @@ public class ES2FileFtpDemo {
 		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
 		fileFtpOupputConfig.setFailedFileResendInterval(-1);
+		fileFtpOupputConfig.setMaxFileRecordSize(1000);//每千条记录生成一个文件
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
-			public String genName(TaskContext taskContext, int fileSeq) {
-				String formate = "yyyyMMddHHmm";
-				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
-				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-				String time = dateFormat.format(new Date());
+			public String genName( TaskContext taskContext,int fileSeq) {
+
+				String time = (String)taskContext.getTaskData("time");
 				String _fileSeq = fileSeq+"";
 				int t = 6 - _fileSeq.length();
 				if(t > 0){
@@ -123,8 +122,11 @@ public class ES2FileFtpDemo {
 		importBuilder.addCallInterceptor(new CallInterceptor() {
 			@Override
 			public void preCall(TaskContext taskContext) {
-				System.out.println("preCall 1");
-				taskContext.addTaskData("data","testData");
+				String formate = "yyyyMMddHHmmss";
+				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
+				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+				String time = dateFormat.format(new Date());
+				taskContext.addTaskData("time",time);
 			}
 
 			@Override
@@ -140,9 +142,9 @@ public class ES2FileFtpDemo {
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
+		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2fileftp_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("es2fileftp_batchsplitimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
@@ -236,7 +238,7 @@ public class ES2FileFtpDemo {
 		/**
 		 * 一次、作业创建一个内置的线程池，实现多线程并行数据导入elasticsearch功能，作业完毕后关闭线程池
 		 */
-		importBuilder.setParallel(true);//设置为多线程并行批量导入,false串行
+		importBuilder.setParallel(false);//设置为多线程并行批量导入,false串行
 		importBuilder.setQueue(10);//设置批量导入线程池等待队列长度
 		importBuilder.setThreadCount(50);//设置批量导入线程池工作线程数量
 		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
