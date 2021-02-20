@@ -50,8 +50,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 		importBuilder.setBatchSize(500).setFetchSize(1000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
-		fileFtpOupputConfig.setBackupSuccessFiles(true);
-		fileFtpOupputConfig.setTransferEmptyFiles(true);
+
 		fileFtpOupputConfig.setFtpIP(ftpIp);
 		fileFtpOupputConfig.setFileDir("D:\\workdir");
 		fileFtpOupputConfig.setFtpPort(5322);
@@ -60,7 +59,12 @@ public class ES2FileFtpBatchSplitFileDemo {
 		fileFtpOupputConfig.setFtpPassword("ecs@123");
 		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
+		fileFtpOupputConfig.setTransferEmptyFiles(true);
 		fileFtpOupputConfig.setFailedFileResendInterval(-1);
+		fileFtpOupputConfig.setBackupSuccessFiles(true);
+
+		fileFtpOupputConfig.setSuccessFilesCleanInterval(5000);
+		fileFtpOupputConfig.setFileLiveTime(86400);//设置上传成功文件备份保留时间，默认2天
 		fileFtpOupputConfig.setMaxFileRecordSize(1000);//每千条记录生成一个文件
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
@@ -110,6 +114,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 				.addParam("var1","v1")
 				.addParam("var2","v2")
 				.addParam("var3","v3");
+		importBuilder.setSourceElasticsearch("default");
 
 		//定时任务配置，
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
@@ -148,6 +153,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
+		//指定增量同步的起始时间
 //		importBuilder.setLastValue(new Date());
 		//增量配置结束
 
@@ -243,16 +249,12 @@ public class ES2FileFtpBatchSplitFileDemo {
 		importBuilder.setThreadCount(50);//设置批量导入线程池工作线程数量
 		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
 		importBuilder.setAsyn(false);//true 异步方式执行，不等待所有导入作业任务结束，方法快速返回；false（默认值） 同步方式执行，等待所有导入作业任务结束，所有作业结束后方法才返回
-//		importBuilder.setDebugResponse(false);//设置是否将每次处理的reponse打印到日志文件中，默认false，不打印响应报文将大大提升性能，只有在调试需要的时候才打开，log日志级别同时要设置为INFO
-//		importBuilder.setDiscardBulkResponse(true);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认true，如果不需要响应报文将大大提升处理速度
 		importBuilder.setPrintTaskLog(true);
-		importBuilder.setDebugResponse(false);//设置是否将每次处理的reponse打印到日志文件中，默认false
-		importBuilder.setDiscardBulkResponse(true);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认false
 
 		/**
-		 * 执行es数据导入数据库表操作
+		 * 启动es数据导入文件并上传sftp/ftp作业
 		 */
 		DataStream dataStream = importBuilder.builder();
-		dataStream.execute();//执行导入操作
+		dataStream.execute();//启动同步作业
 	}
 }
