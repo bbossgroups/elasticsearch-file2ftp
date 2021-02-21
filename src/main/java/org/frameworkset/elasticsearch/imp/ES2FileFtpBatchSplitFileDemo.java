@@ -109,8 +109,14 @@ public class ES2FileFtpBatchSplitFileDemo {
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
 //				.setQueryUrl("dbdemo/_search")
+				//通过简单的示例，演示根据实间范围计算queryUrl,以当前时间为截止时间，后续版本6.2.8将增加lastEndtime参数作为截止时间（在设置了IncreamentEndOffset情况下有值）
 				.setQueryUrlFunction((Date lastTime)->{
-					return "dbdemo/_search";
+					String formate = "yyyy.MM.dd";
+					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+					String startTime = dateFormat.format(lastTime);
+					Date endTime = new Date();
+					String endTimeStr = dateFormat.format(endTime);
+					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				})
 				.addParam("fullImport",false)
