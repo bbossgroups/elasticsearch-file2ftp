@@ -100,7 +100,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 			}
 		});
 		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
-		importBuilder.setIncreamentEndOffset(300);//单位秒
+		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
 		importBuilder
 				.setDsl2ndSqlFile("dsl2ndSqlFile.xml")
@@ -110,10 +110,10 @@ public class ES2FileFtpBatchSplitFileDemo {
 //				.setSliceSize(5)
 //				.setQueryUrl("dbdemo/_search")
 				//通过简单的示例，演示根据实间范围计算queryUrl,以当前时间为截止时间，后续版本6.2.8将增加lastEndtime参数作为截止时间（在设置了IncreamentEndOffset情况下有值）
-				.setQueryUrlFunction((Date lastTime)->{
+				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
 					String formate = "yyyy.MM.dd";
 					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-					String startTime = dateFormat.format(lastTime);
+					String startTime = dateFormat.format(lastEndTime);
 					Date endTime = new Date();
 					String endTimeStr = dateFormat.format(endTime);
 					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
