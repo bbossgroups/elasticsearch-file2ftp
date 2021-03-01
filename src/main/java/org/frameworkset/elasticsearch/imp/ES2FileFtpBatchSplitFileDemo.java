@@ -15,9 +15,9 @@ package org.frameworkset.elasticsearch.imp;
  * limitations under the License.
  */
 
-import com.frameworkset.util.SimpleStringUtil;
 import org.frameworkset.elasticsearch.serial.SerialUtil;
 import org.frameworkset.runtime.CommonLauncher;
+import org.frameworkset.spi.geoip.IpInfo;
 import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
@@ -34,7 +34,6 @@ import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * <p>Description: elasticsearch到sftp数据上传案例</p>
@@ -111,13 +110,14 @@ public class ES2FileFtpBatchSplitFileDemo {
 //				.setQueryUrl("dbdemo/_search")
 				//通过简单的示例，演示根据实间范围计算queryUrl,以当前时间为截止时间，后续版本6.2.8将增加lastEndtime参数作为截止时间（在设置了IncreamentEndOffset情况下有值）
 				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
-					String formate = "yyyy.MM.dd";
-					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-					String startTime = dateFormat.format(lastEndTime);
-					Date endTime = new Date();
-					String endTimeStr = dateFormat.format(endTime);
-					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
+//					String formate = "yyyy.MM.dd";
+//					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+//					String startTime = dateFormat.format(lastEndTime);
+//					Date endTime = new Date();
+//					String endTimeStr = dateFormat.format(endTime);
+//					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
+					return "dbdemo/_search";
 				})
 				.addParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
@@ -222,9 +222,9 @@ public class ES2FileFtpBatchSplitFileDemo {
 				/**
 				 * 获取ip对应的运营商和区域信息
 				 */
-				Map ipInfo = (Map)context.getValue("ipInfo");
+				IpInfo ipInfo = (IpInfo) context.getIpInfo("logVisitorial");
 				if(ipInfo != null)
-					context.addFieldValue("ipinfo", SimpleStringUtil.object2json(ipInfo));
+					context.addFieldValue("ipinfo", ipInfo);
 				else{
 					context.addFieldValue("ipinfo", "");
 				}
