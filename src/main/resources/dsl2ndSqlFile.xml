@@ -13,7 +13,7 @@
          "query": {
                 "bool": {
                     "filter": [
-                        ## 可以设置同步数据的过滤参数条件
+                        ## 可以设置同步数据的过滤参数条件，通过addParam方法添加var1变量值，下面的条件已经被注释掉
                         #*
                         {
                             "term": {
@@ -31,7 +31,7 @@
                             }
                         },
                         *#
-                        ## 根据fullImport参数控制是否设置增量检索条件，true 全量检索 false增量检索
+                        ## 根据fullImport参数控制是否设置增量检索条件，true 全量检索 false增量检索，通过addParam方法添加fullImport变量值
                         #if(!$fullImport)
                         {   ## 增量检索范围，可以是时间范围，也可以是数字范围，这里采用的是数字增量字段
                             "range": {
@@ -57,7 +57,7 @@
     <property name="scrollQuery">
         <![CDATA[
          {
-            "size":#[size],
+            "size":#[size], ## size变量对应于作业定义时设置的fetchSize参数
             @{queryCondition}
         }
         ]]>
@@ -69,10 +69,10 @@
         <![CDATA[
          {
            "slice": {
-                "id": #[sliceId], ## 必须使用sliceId作为变量名称
-                "max": #[sliceMax] ## 必须使用sliceMax作为变量名称
+                "id": #[sliceId], ## 必须使用sliceId作为变量名称，框架自动填充变量值
+                "max": #[sliceMax] ## 必须使用sliceMax作为变量名称，对应于作业定义时设置的sliceSize参数值
             },
-            "size":#[size],
+            "size":#[size], ## size变量对应于作业定义时设置的fetchSize参数
             @{queryCondition}
         }
         ]]>
