@@ -65,6 +65,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 		fileFtpOupputConfig.setSuccessFilesCleanInterval(5000);
 		fileFtpOupputConfig.setFileLiveTime(86400);//设置上传成功文件备份保留时间，默认2天
 		fileFtpOupputConfig.setMaxFileRecordSize(1000);//每千条记录生成一个文件
+		fileFtpOupputConfig.setDisableftp(false);//false 启用sftp/ftp上传功能,true 禁止（只生成数据文件，保留在FileDir对应的目录下面）
 		//自定义文件名称
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
@@ -110,14 +111,14 @@ public class ES2FileFtpBatchSplitFileDemo {
 //				.setQueryUrl("dbdemo/_search")
 				//通过简单的示例，演示根据实间范围计算queryUrl,以当前时间为截止时间，后续版本6.2.8将增加lastEndtime参数作为截止时间（在设置了IncreamentEndOffset情况下有值）
 				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
-//					String formate = "yyyy.MM.dd";
-//					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-//					String startTime = dateFormat.format(lastEndTime);
-//					Date endTime = new Date();
-//					String endTimeStr = dateFormat.format(endTime);
-//					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
+					String formate = "yyyy.MM.dd";
+					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+					String startTime = dateFormat.format(lastEndTime);
+//					Date lastEndTime = new Date();
+					String endTimeStr = dateFormat.format(lastEndTime);
+					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
-					return "dbdemo/_search";
+//					return "dbdemo/_search";
 				})
 				.addParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
