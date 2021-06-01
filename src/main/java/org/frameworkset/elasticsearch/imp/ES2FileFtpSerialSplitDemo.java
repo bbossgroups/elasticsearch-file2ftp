@@ -25,10 +25,10 @@ import org.frameworkset.tran.context.Context;
 import org.frameworkset.tran.input.fileftp.es.ES2FileFtpExportBuilder;
 import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
-import org.frameworkset.tran.output.fileftp.ReocordGenerator;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
+import org.frameworkset.tran.util.RecordGenerator;
 
 import java.io.Writer;
 import java.text.DateFormat;
@@ -82,7 +82,7 @@ public class ES2FileFtpSerialSplitDemo {
 				return "HN_BOSS_TRADE"+_fileSeq + "_"+time +"_" + _fileSeq+".txt";
 			}
 		});
-		fileFtpOupputConfig.setReocordGenerator(new ReocordGenerator() {
+		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
 			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
 				SerialUtil.normalObject2json(record.getDatas(),builder);

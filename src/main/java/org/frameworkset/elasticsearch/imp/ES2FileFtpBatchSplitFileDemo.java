@@ -25,10 +25,10 @@ import org.frameworkset.tran.context.Context;
 import org.frameworkset.tran.input.fileftp.es.ES2FileFtpExportBuilder;
 import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
-import org.frameworkset.tran.output.fileftp.ReocordGenerator;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
+import org.frameworkset.tran.util.RecordGenerator;
 
 import java.io.Writer;
 import java.text.DateFormat;
@@ -88,7 +88,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 			}
 		});
 		//指定文件中每条记录格式，不指定默认为json格式输出
-		fileFtpOupputConfig.setReocordGenerator(new ReocordGenerator() {
+		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
 			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
 				//直接将记录按照json格式输出到文本文件中
