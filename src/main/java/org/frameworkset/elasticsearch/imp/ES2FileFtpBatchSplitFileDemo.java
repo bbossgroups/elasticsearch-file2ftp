@@ -46,7 +46,7 @@ import java.util.Date;
 public class ES2FileFtpBatchSplitFileDemo {
 	public static void main(String[] args){
 		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
-		importBuilder.setBatchSize(500).setFetchSize(1000);
+		importBuilder.setBatchSize(1000).setFetchSize(2000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
 
@@ -64,8 +64,8 @@ public class ES2FileFtpBatchSplitFileDemo {
 
 		fileFtpOupputConfig.setSuccessFilesCleanInterval(5000);
 		fileFtpOupputConfig.setFileLiveTime(86400);//设置上传成功文件备份保留时间，默认2天
-		fileFtpOupputConfig.setMaxFileRecordSize(1000);//每千条记录生成一个文件
-		fileFtpOupputConfig.setDisableftp(false);//false 启用sftp/ftp上传功能,true 禁止（只生成数据文件，保留在FileDir对应的目录下面）
+		fileFtpOupputConfig.setMaxFileRecordSize(100000);//每千条记录生成一个文件
+		fileFtpOupputConfig.setDisableftp(true);//false 启用sftp/ftp上传功能,true 禁止（只生成数据文件，保留在FileDir对应的目录下面）
 		//自定义文件名称
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
@@ -108,7 +108,8 @@ public class ES2FileFtpBatchSplitFileDemo {
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
-//				.setQueryUrl("dbdemo/_search")
+				.setQueryUrl("kafkademo/_search")
+				/**
 				//通过简单的示例，演示根据实间范围计算queryUrl,以当前时间为截止时间，后续版本6.2.8将增加lastEndtime参数作为截止时间（在设置了IncreamentEndOffset情况下有值）
 				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
 					String formate = "yyyy.MM.dd";
@@ -119,8 +120,8 @@ public class ES2FileFtpBatchSplitFileDemo {
 					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //					return "dbdemo/_search";
-				})
-				.addParam("fullImport",false)
+				})**/
+				.addParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
@@ -131,7 +132,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
 //					 .setScheduleDate(date) //指定任务开始执行时间：日期
 				.setDeyLay(1000L) // 任务延迟执行deylay毫秒后执行
-				.setPeriod(30000L); //每隔period毫秒执行，如果不设置，只执行一次
+				.setPeriod(300000L); //每隔period毫秒执行，如果不设置，只执行一次
 		//定时任务配置结束
 
 		//设置任务执行拦截器，可以添加多个

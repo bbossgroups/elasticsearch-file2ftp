@@ -47,7 +47,7 @@ import java.util.Map;
 public class ES2FileFtpBatchDemo {
 	public static void main(String[] args){
 		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
-		importBuilder.setBatchSize(100).setFetchSize(1000);
+		importBuilder.setBatchSize(1000).setFetchSize(2000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
 		fileFtpOupputConfig.setBackupSuccessFiles(true);
@@ -61,6 +61,8 @@ public class ES2FileFtpBatchDemo {
 		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
 		fileFtpOupputConfig.setKeepAliveTimeout(100000);
 		fileFtpOupputConfig.setFailedFileResendInterval(100000);
+		fileFtpOupputConfig.setDisableftp(true);//false 启用sftp/ftp上传功能,true 禁止（只生成数据文件，保留在FileDir对应的目录下面）
+
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( TaskContext taskContext,int fileSeq) {
@@ -103,10 +105,10 @@ public class ES2FileFtpBatchDemo {
 //				.setSliceSize(5)
 //				.setQueryUrl("dbdemo/_search")
 				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
-					return "dbdemo/_search";
+					return "kafkademo/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				})
-				.addParam("fullImport",false)
+				.addParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
