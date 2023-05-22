@@ -21,10 +21,12 @@ import org.frameworkset.spi.geoip.IpInfo;
 import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
+import org.frameworkset.tran.config.ImportBuilder;
 import org.frameworkset.tran.context.Context;
-import org.frameworkset.tran.input.fileftp.es.ES2FileFtpExportBuilder;
-import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
+import org.frameworkset.tran.output.ftp.FtpOutConfig;
+import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
+import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
@@ -45,27 +47,28 @@ import java.util.Date;
  */
 public class ES2FileFtpBatchSplitFileDemo {
 	public static void main(String[] args){
-		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
+		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(1000).setFetchSize(2000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
-		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
+		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
+		FtpOutConfig ftpOutConfig = new FtpOutConfig();
+		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
 
-		fileFtpOupputConfig.setFtpIP(ftpIp);
-		fileFtpOupputConfig.setFileDir("D:\\workdir");
-		fileFtpOupputConfig.setFtpPort(5322);
-		fileFtpOupputConfig.addHostKeyVerifier("2a:da:5a:6a:cf:7d:65:e5:ac:ff:d3:73:7f:2c:55:c9");
-		fileFtpOupputConfig.setFtpUser("ecs");
-		fileFtpOupputConfig.setFtpPassword("ecs@123");
-		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
-		fileFtpOupputConfig.setKeepAliveTimeout(100000);
-		fileFtpOupputConfig.setTransferEmptyFiles(true);
-		fileFtpOupputConfig.setFailedFileResendInterval(-1);
-		fileFtpOupputConfig.setBackupSuccessFiles(true);
+		ftpOutConfig.setFtpIP(ftpIp);
 
-		fileFtpOupputConfig.setSuccessFilesCleanInterval(5000);
-		fileFtpOupputConfig.setFileLiveTime(86400);//设置上传成功文件备份保留时间，默认2天
+		ftpOutConfig.setFtpPort(5322);
+		ftpOutConfig.setFtpUser("ecs");
+		ftpOutConfig.setFtpPassword("ecs@123");
+		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
+		ftpOutConfig.setKeepAliveTimeout(100000);
+		ftpOutConfig.setTransferEmptyFiles(true);
+		ftpOutConfig.setFailedFileResendInterval(-1);
+		ftpOutConfig.setBackupSuccessFiles(true);
+
+		ftpOutConfig.setSuccessFilesCleanInterval(5000);
+		ftpOutConfig.setFileLiveTime(86400);//设置上传成功文件备份保留时间，默认2天
 		fileFtpOupputConfig.setMaxFileRecordSize(100000);//每千条记录生成一个文件
-		fileFtpOupputConfig.setDisableftp(true);//false 启用sftp/ftp上传功能,true 禁止（只生成数据文件，保留在FileDir对应的目录下面）
+		fileFtpOupputConfig.setFileDir("D:\\workdir");
 		//自定义文件名称
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
@@ -99,11 +102,12 @@ public class ES2FileFtpBatchSplitFileDemo {
 
 			}
 		});
-		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
+		importBuilder.setOutputConfig(fileFtpOupputConfig);
 		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
-		importBuilder
-				.setDsl2ndSqlFile("dsl2ndSqlFile.xml")
+		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
+		elasticsearchInputConfig
+				.setDslFile("dsl2ndSqlFile.xml")
 				.setDslName("scrollQuery")
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
@@ -121,12 +125,15 @@ public class ES2FileFtpBatchSplitFileDemo {
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //					return "dbdemo/_search";
 				})**/
+				.setSourceElasticsearch("default");
+		importBuilder.setInputConfig(elasticsearchInputConfig)
 				.addParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
 				.addParam("var3","v3");
-		importBuilder.setSourceElasticsearch("default");
+
+
 
 		//定时任务配置，
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
@@ -152,7 +159,7 @@ public class ES2FileFtpBatchSplitFileDemo {
 			}
 
 			@Override
-			public void throwException(TaskContext taskContext, Exception e) {
+			public void throwException(TaskContext taskContext, Throwable e) {
 				System.out.println("throwException 1");
 			}
 		});
@@ -254,13 +261,12 @@ public class ES2FileFtpBatchSplitFileDemo {
 		//映射和转换配置结束
 
 		/**
-		 * 一次、作业创建一个内置的线程池，实现多线程并行数据导入elasticsearch功能，作业完毕后关闭线程池
+		 * 内置线程池配置，实现多线程并行数据导入功能，作业完成退出时自动关闭该线程池
 		 */
 		importBuilder.setParallel(false);//设置为多线程并行批量导入,false串行
 		importBuilder.setQueue(10);//设置批量导入线程池等待队列长度
 		importBuilder.setThreadCount(50);//设置批量导入线程池工作线程数量
 		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
-		importBuilder.setAsyn(false);//true 异步方式执行，不等待所有导入作业任务结束，方法快速返回；false（默认值） 同步方式执行，等待所有导入作业任务结束，所有作业结束后方法才返回
 		importBuilder.setPrintTaskLog(true);
 
 		/**

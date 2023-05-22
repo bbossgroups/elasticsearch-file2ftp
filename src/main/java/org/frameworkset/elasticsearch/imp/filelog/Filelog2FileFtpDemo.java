@@ -22,13 +22,16 @@ import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
 import org.frameworkset.tran.ExportResultHandler;
+import org.frameworkset.tran.config.ImportBuilder;
 import org.frameworkset.tran.context.Context;
 import org.frameworkset.tran.input.file.FileConfig;
-import org.frameworkset.tran.input.file.FileImportConfig;
-import org.frameworkset.tran.input.fileftp.file.FileLog2FileFtpExportBuilder;
+import org.frameworkset.tran.input.file.FileTaskContext;
 import org.frameworkset.tran.metrics.TaskMetrics;
-import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
+import org.frameworkset.tran.output.ftp.FtpOutConfig;
+import org.frameworkset.tran.plugin.file.input.FileInputConfig;
+import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
+import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.TaskContext;
 import org.frameworkset.tran.task.TaskCommand;
 import org.frameworkset.tran.util.RecordGenerator;
@@ -63,29 +66,32 @@ public class Filelog2FileFtpDemo {
 	 * elasticsearch地址和数据库地址都从外部配置文件application.properties中获取，加载数据源配置和es配置
 	 */
 	public void scheduleTimestampImportData(){
-		FileLog2FileFtpExportBuilder importBuilder = new FileLog2FileFtpExportBuilder();
+		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
 
 
 		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
-		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
-		fileFtpOupputConfig.setBackupSuccessFiles(true);
-		fileFtpOupputConfig.setTransferEmptyFiles(true);
-		fileFtpOupputConfig.setFtpIP(ftpIp);
-		fileFtpOupputConfig.setFileDir("D:\\workdir");
-		fileFtpOupputConfig.setFtpPort(5322);
-		fileFtpOupputConfig.addHostKeyVerifier("2a:da:5a:6a:cf:7d:65:e5:ac:ff:d3:73:7f:2c:55:c9");
-		fileFtpOupputConfig.setFtpUser("ecs");
-		fileFtpOupputConfig.setFtpPassword("ecs@123");
-		fileFtpOupputConfig.setRemoteFileDir("/home/ecs/failLog");
-		fileFtpOupputConfig.setKeepAliveTimeout(100000);
-		fileFtpOupputConfig.setFailedFileResendInterval(100000);
+		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
+		FtpOutConfig ftpOutConfig = new FtpOutConfig();
+		ftpOutConfig.setBackupSuccessFiles(true);
+		ftpOutConfig.setTransferEmptyFiles(true);
+		ftpOutConfig.setFtpIP(ftpIp);
+
+		ftpOutConfig.setFtpPort(5322);
+		ftpOutConfig.setFtpUser("ecs");
+		ftpOutConfig.setFtpPassword("ecs@123");
+		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
+		ftpOutConfig.setKeepAliveTimeout(100000);
+		ftpOutConfig.setFailedFileResendInterval(100000);
 		fileFtpOupputConfig.setMaxFileRecordSize(100);
+		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
+		fileFtpOupputConfig.setFileDir("D:\\workdir");
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName(TaskContext taskContext, int fileSeq) {
-
-
+				FileTaskContext fileTaskContext = (FileTaskContext)taskContext;
+				String fileName = fileTaskContext.getFileInfo().getFileName();
+				Object time = taskContext.getTaskData("time");
 				return "HN_BOSS_TRADE_"+fileSeq + ".txt";
 			}
 		});
@@ -96,10 +102,26 @@ public class Filelog2FileFtpDemo {
 
 			}
 		});
-		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
+		importBuilder.addCallInterceptor(new CallInterceptor() {
+			@Override
+			public void preCall(TaskContext taskContext) {
+				taskContext.addTaskData("time",new Date());
+			}
+
+			@Override
+			public void afterCall(TaskContext taskContext) {
+
+			}
+
+			@Override
+			public void throwException(TaskContext taskContext, Throwable e) {
+
+			}
+		});
+		importBuilder.setOutputConfig(fileFtpOupputConfig);
 		//定时任务配置结束
 
-		FileImportConfig config = new FileImportConfig();
+		FileInputConfig config = new FileInputConfig();
 		//.*.txt.[0-9]+$
 		//[17:21:32:388]
 //		config.addConfig(new FileConfig("D:\\ecslog",//指定目录
@@ -115,6 +137,7 @@ public class Filelog2FileFtpDemo {
 						"es.log",//指定文件名称，可以是正则表达式
 						"^\\[[0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{3}\\]")//指定多行记录的开头识别标记，正则表达式
 						.setCloseEOF(true)//已经结束的文件内容采集完毕后关闭文件对应的采集通道，后续不再监听对应文件的内容变化
+						.setMaxBytes(0) //字符串maxBytes为0或者负数时忽略长度截取，The maximum number of bytes that a single log message can have. All bytes after max_bytes are discarded and not sent. * This setting is especially useful for multiline log messages, which can get large. The default is 1MB (1048576)
 						.addField("tag","filelog")//添加字段tag到记录中
 				//.setExcludeLines(new String[]{".*endpoint.*"}))//采集不包含endpoint的日志
 		);
@@ -155,7 +178,7 @@ public class Filelog2FileFtpDemo {
 		 * true 开启 false 关闭
 		 */
 		config.setEnableMeta(true);
-		importBuilder.setFileImportConfig(config);
+		importBuilder.setInputConfig(config);
 		importBuilder.setFlushInterval(10000l);
 		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
@@ -293,14 +316,11 @@ public class Filelog2FileFtpDemo {
 			}
 
 			@Override
-			public void exception(TaskCommand<String,String> taskCommand, Exception exception) {
+			public void exception(TaskCommand<String,String> taskCommand, Throwable exception) {
 				logger.warn(taskCommand.getTaskMetrics().toString(),exception);
 			}
 
-			@Override
-			public int getMaxRetry() {
-				return 0;
-			}
+
 		});
 
 		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行

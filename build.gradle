@@ -56,8 +56,8 @@ configure(allprojects) { project ->
 	jar {
 		manifest {
 			attributes (
-					'Implementation': version,
-					'Specification-Version': version,
+					'Implementation': archiveVersion,
+					'Specification-Version': archiveVersion,
 					'Implementation-Vendor': 'bbossgroups',
 					'Implementation-ProductID': project.name,
 					'Compile-Timestamp': new Date().format('yyyy-MM-dd HH:mm:ss'),
@@ -71,9 +71,7 @@ configure(allprojects) { project ->
 
 	repositories {
 		mavenLocal()
-		 maven {
-	        url "https://maven.aliyun.com/nexus/content/groups/public"
-	    }
+
 		  
 		mavenCentral()
 
@@ -136,17 +134,17 @@ configure(allprojects) { project ->
 			[group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4j2_version}", transitive: true],
 		)
 		api(
-				[group: 'com.bbossgroups.plugins', name: 'bboss-elasticsearch-rest-file2ftp', version: "${bboss_es_version}", transitive: true],
+				[group: 'com.bbossgroups.plugins', name: 'bboss-datatran-fileftp', version: "${bboss_es_version}", transitive: true],
 				[group: 'com.bbossgroups', name: 'bboss-schedule', version: "${bboss_version}", transitive: true],
 		)
 
-		api 'org.xerial:sqlite-jdbc:3.34.0'
+		api 'org.xerial:sqlite-jdbc:3.36.0.3'
 		//mysql 8.0依赖
-		//api group: 'mysql', name: 'mysql-connector-java', version: '8.0.16'
+		//api group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
 		//mysql 5.x依赖
-		api 'mysql:mysql-connector-java:5.1.40'
+		api 'mysql:mysql-connector-java:8.0.28'
 		api (
-				[group: 'com.bbossgroups', name: 'bboss-rt', version: "${bboss_version}", transitive: false],
+				[group: 'com.bbossgroups', name: 'bboss-bootstrap-rt', version: "${bboss_version}", transitive: true],
 		)
 		api (
 				fileTree(dir: 'lib', include: '*.jar')

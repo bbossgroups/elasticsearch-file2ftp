@@ -5,6 +5,8 @@
             配置数据导入的dsl
          ]]>
     </description>
+
+
     <!--
           条件片段
      -->
@@ -50,7 +52,54 @@
             }
         ]]>
     </property>
+    <!--
+       简单的scroll query案例，复杂的条件修改query dsl即可
+       -->
+    <property name="dsl">
+        <![CDATA[
+         {
+            "size":#[size], ## size变量对应于作业定义时设置的fetchSize参数
+            "query": {
+                "bool": {
+                    "filter": [
+                        ## 可以设置同步数据的过滤参数条件，通过addParam方法添加var1变量值，下面的条件已经被注释掉
+                        #*
+                        {
+                            "term": {
+                                "var1.keyword": #[var1]
+                            }
+                        },
+                        {
+                            "term": {
+                                "var2.keyword": #[var2]
+                            }
+                        },
+                        {
+                            "term": {
+                                "var3.keyword": #[var3]
+                            }
+                        },
+                        *#
+                        ## 根据fullImport参数控制是否设置增量检索条件，true 全量检索 false增量检索，通过addParam方法添加fullImport变量值
+                        #if(!$fullImport)
+                        {   ## 增量检索范围，可以是时间范围，也可以是数字范围，这里采用的是数字增量字段
+                            "range": {
 
+                                #if($collecttime)
+                                "collecttime": { ## 时间增量检索字段
+                                    "gt": #[collecttime],
+                                    "lte": #[collecttime__endTime]
+                                }
+                                #end
+                            }
+                        }
+                        #end
+                    ]
+                }
+            }
+        }
+        ]]>
+    </property>
     <!--
        简单的scroll query案例，复杂的条件修改query dsl即可
        -->
@@ -74,6 +123,38 @@
             },
             "size":#[size], ## size变量对应于作业定义时设置的fetchSize参数
             @{queryCondition}
+        }
+        ]]>
+    </property>
+
+    <!--
+   简单的scroll query案例，复杂的条件修改query dsl即可
+   -->
+    <property name="newscrollQuery">
+        <![CDATA[
+         {
+            "size":#[size], ## size变量对应于作业定义时设置的fetchSize参数
+            "query": {
+                "bool": {
+                    "filter": [
+
+                        ## 根据fullImport参数控制是否设置增量检索条件，true 全量检索 false增量检索，通过addParam方法添加fullImport变量值
+                        #if(!$fullImport)
+                        {   ## 增量检索范围，可以是时间范围，也可以是数字范围，这里采用的是数字增量字段
+                            "range": {
+
+                                #if($newcollecttime)
+                                "newcollecttime": { ## 时间增量检索字段
+                                    "gt": #[newcollecttime],
+                                    "lte": #[newcollecttime__endTime]
+                                }
+                                #end
+                            }
+                        }
+                        #end
+                    ]
+                }
+            }
         }
         ]]>
     </property>

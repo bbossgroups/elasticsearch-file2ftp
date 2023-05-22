@@ -1,4 +1,4 @@
-package org.frameworkset.elasticsearch.imp;
+package org.frameworkset.elasticsearch.imp.ftp;
 /**
  * Copyright 2020 bboss
  * <p>
@@ -38,39 +38,44 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+import static org.frameworkset.tran.ftp.FtpConfig.TRANSFER_PROTOCOL_FTP;
+
 /**
- * <p>Description: elasticsearch到sftp数据上传案例</p>
+ * <p>Description: elasticsearch到ftp数据上传案例</p>
  * <p></p>
  * <p>Copyright (c) 2020</p>
  * @Date 2021/2/1 14:39
  * @author biaoping.yin
  * @version 1.0
  */
-public class ES2FileFtpSerialSplitDemo {
+public class ESWithDsl2FileFtpBatchDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
-		importBuilder.setBatchSize(-1) // < 0为serial执行
-				.setFetchSize(1000);
-		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		importBuilder.setBatchSize(100).setFetchSize(1000);
+		String ftpIp = CommonLauncher.getProperty("ftpIP","127.0.0.1");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
-		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
 		ftpOutConfig.setBackupSuccessFiles(true);
-		ftpOutConfig.setTransferEmptyFiles(true);
+		ftpOutConfig.setTransferEmptyFiles(false);
 		ftpOutConfig.setFtpIP(ftpIp);
 
-		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("ecs");
-		ftpOutConfig.setFtpPassword("ecs@123");
-		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
+		ftpOutConfig.setFtpPort(222);
+		ftpOutConfig.setTransferProtocol(TRANSFER_PROTOCOL_FTP);
+		ftpOutConfig.setFtpUser("test");
+		ftpOutConfig.setFtpPassword("123456");
+		ftpOutConfig.setRemoteFileDir("/");
 		ftpOutConfig.setKeepAliveTimeout(100000);
-		ftpOutConfig.setFailedFileResendInterval(300000);
+		ftpOutConfig.setFailedFileResendInterval(100000);
+		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
 		fileFtpOupputConfig.setFileDir("D:\\workdir");
-		fileFtpOupputConfig.setMaxFileRecordSize(1000);//每千条记录生成一个文件
+		fileFtpOupputConfig.setMaxFileRecordSize(1000);
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( TaskContext taskContext,int fileSeq) {
-				String time = (String)taskContext.getTaskData("time");
+				String formate = "yyyyMMddHHmmss";
+				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
+				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+				String time = dateFormat.format(new Date());
 				String _fileSeq = fileSeq+"";
 				int t = 6 - _fileSeq.length();
 				if(t > 0){
@@ -83,7 +88,7 @@ public class ES2FileFtpSerialSplitDemo {
 
 
 
-				return "HN_BOSS_TRADE"+_fileSeq + "_"+time +"_" + _fileSeq+".txt";
+				return "eswithdsl2ftp_"+time +"_" + _fileSeq+".txt";
 			}
 		});
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
@@ -99,24 +104,64 @@ public class ES2FileFtpSerialSplitDemo {
 		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
 		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
+		String queryDsl = "{\n" +
+				"            \"size\":#[size], ## size变量对应于作业定义时设置的fetchSize参数\n" +
+				"            \"query\": {\n" +
+				"                \"bool\": {\n" +
+				"                    \"filter\": [\n" +
+				"                        ## 可以设置同步数据的过滤参数条件，通过addParam方法添加var1变量值，下面的条件已经被注释掉\n" +
+				"                        #*\n" +
+				"                        {\n" +
+				"                            \"term\": {\n" +
+				"                                \"var1.keyword\": #[var1]\n" +
+				"                            }\n" +
+				"                        },\n" +
+				"                        {\n" +
+				"                            \"term\": {\n" +
+				"                                \"var2.keyword\": #[var2]\n" +
+				"                            }\n" +
+				"                        },\n" +
+				"                        {\n" +
+				"                            \"term\": {\n" +
+				"                                \"var3.keyword\": #[var3]\n" +
+				"                            }\n" +
+				"                        },\n" +
+				"                        *#\n" +
+				"                        ## 根据fullImport参数控制是否设置增量检索条件，true 全量检索 false增量检索，通过addParam方法添加fullImport变量值\n" +
+				"                        #if(!$fullImport)\n" +
+				"                        {   ## 增量检索范围，可以是时间范围，也可以是数字范围，这里采用的是数字增量字段\n" +
+				"                            \"range\": {\n" +
+				"\n" +
+				"                                #if($collecttime)\n" +
+				"                                \"collecttime\": { ## 时间增量检索字段\n" +
+				"                                    \"gt\": #[collecttime],\n" +
+				"                                    \"lte\": #[collecttime__endTime]\n" +
+				"                                }\n" +
+				"                                #end\n" +
+				"                            }\n" +
+				"                        }\n" +
+				"                        #end\n" +
+				"                    ]\n" +
+				"                }\n" +
+				"            }\n" +
+				"        }";
 		elasticsearchInputConfig
-				.setDslFile("dsl2ndSqlFile.xml")
-				.setDslName("scrollQuery")
+				.setDsl(queryDsl)
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
-//				.setQueryUrl("dbdemo/_search")
-				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
-					String formate = "yyyy.MM.dd";
-					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-					String startTime = dateFormat.format(lastEndTime);
-					Date endTime = new Date();
-					String endTimeStr = dateFormat.format(endTime);
-					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
-//					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
-				});
-		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",false)
+				.setQueryUrl("dbdemo/_search");
+//				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
+//					String formate = "yyyy.MM.dd";
+//					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+//					String startTime = dateFormat.format(lastEndTime);
+//					Date endTime = new Date();
+//					String endTimeStr = dateFormat.format(endTime);
+//					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
+////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
+//				});
+		importBuilder.setInputConfig(elasticsearchInputConfig).
+				addParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
@@ -133,11 +178,8 @@ public class ES2FileFtpSerialSplitDemo {
 		importBuilder.addCallInterceptor(new CallInterceptor() {
 			@Override
 			public void preCall(TaskContext taskContext) {
-				String formate = "yyyyMMddHHmmss";
-				//HN_BOSS_TRADE00001_YYYYMMDDHHMM_000001.txt
-				SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-				String time = dateFormat.format(new Date());
-				taskContext.addTaskData("time",time);
+				System.out.println("preCall 1");
+				taskContext.addTaskData("data","testData");
 			}
 
 			@Override
@@ -155,7 +197,7 @@ public class ES2FileFtpSerialSplitDemo {
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
 		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2fileftp_serialsplitimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("esdsl2fileftp_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型

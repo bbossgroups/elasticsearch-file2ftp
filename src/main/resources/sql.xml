@@ -7,7 +7,12 @@
     </description>
     <property name="demoexport"><![CDATA[select * from td_sm_log where log_id > #[log_id]]]></property>
     <property name="demoexportFull"><![CDATA[select * from td_sm_log ]]></property>
+    <property name="querynewmanrequests"><![CDATA[select * from cityperson order by rowNo asc]]></property>
 
+    <property name="newmanrequestsSubCityperson"><![CDATA[select * from newmanrequests where cert_no not in (select cert_no from cityperson) order by rowNo asc]]></property>
+    <property name="citypersonSubNewmanrequests"><![CDATA[select * from cityperson where cert_no not in (select cert_no from newmanrequests) order by rowNo asc]]></property>
+
+    cityperson
     <!--
     插入数据sql
     -->

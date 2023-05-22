@@ -21,21 +21,25 @@ import org.frameworkset.runtime.CommonLauncher;
 import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
+import org.frameworkset.tran.config.ImportBuilder;
 import org.frameworkset.tran.context.Context;
-import org.frameworkset.tran.input.fileftp.es.ES2FileFtpExportBuilder;
-import org.frameworkset.tran.output.fileftp.FileFtpOupputConfig;
-import org.frameworkset.tran.output.fileftp.FileFtpOupputContext;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
+import org.frameworkset.tran.output.ftp.FtpOutConfig;
+import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
+import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
 import org.frameworkset.tran.util.RecordGenerator;
+import org.frameworkset.tran.util.TranUtil;
 
 import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+
+import static org.frameworkset.tran.ftp.FtpConfig.TRANSFER_PROTOCOL_FTP;
 
 /**
  * <p>Description: elasticsearch到ftp数据上传案例</p>
@@ -47,22 +51,26 @@ import java.util.Map;
  */
 public class ES2FileFtpBatchDemo {
 	public static void main(String[] args){
-		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
+		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(100).setFetchSize(1000);
 		String ftpIp = CommonLauncher.getProperty("ftpIP","127.0.0.1");//同时指定了默认值
-		FileFtpOupputConfig fileFtpOupputConfig = new FileFtpOupputConfig();
-		fileFtpOupputConfig.setBackupSuccessFiles(true);
-		fileFtpOupputConfig.setTransferEmptyFiles(true);
-		fileFtpOupputConfig.setFtpIP(ftpIp);
+		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
+		FtpOutConfig ftpOutConfig = new FtpOutConfig();
+		ftpOutConfig.setBackupSuccessFiles(true);
+		ftpOutConfig.setTransferEmptyFiles(false);
+		ftpOutConfig.setFtpIP(ftpIp);
+
+		ftpOutConfig.setFtpPort(222);
+		ftpOutConfig.setTransferProtocol(TRANSFER_PROTOCOL_FTP);
+		ftpOutConfig.setFtpUser("test");
+		ftpOutConfig.setFtpPassword("123456");
+		ftpOutConfig.setRemoteFileDir("/");
+		ftpOutConfig.setKeepAliveTimeout(100000);
+		ftpOutConfig.setFailedFileResendInterval(100000);
+		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
 		fileFtpOupputConfig.setFileDir("D:\\workdir");
-		fileFtpOupputConfig.setFtpPort(222);
-		fileFtpOupputConfig.setTransferProtocol(FileFtpOupputContext.TRANSFER_PROTOCOL_FTP);
-		fileFtpOupputConfig.setFtpUser("test");
-		fileFtpOupputConfig.setFtpPassword("123456");
-		fileFtpOupputConfig.setRemoteFileDir("/");
-		fileFtpOupputConfig.setKeepAliveTimeout(100000);
-		fileFtpOupputConfig.setFailedFileResendInterval(100000);
 		fileFtpOupputConfig.setMaxFileRecordSize(1000);
+		fileFtpOupputConfig.setLineSeparator(TranUtil.lineSeparator);//设置行分隔符
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( TaskContext taskContext,int fileSeq) {
@@ -94,26 +102,28 @@ public class ES2FileFtpBatchDemo {
 
 			}
 		});
-		importBuilder.setFileFtpOupputConfig(fileFtpOupputConfig);
+		importBuilder.setOutputConfig(fileFtpOupputConfig);
 		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
-		importBuilder
-				.setDsl2ndSqlFile("dsl2ndSqlFile.xml")
+		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
+		elasticsearchInputConfig
+				.setDslFile("dsl2ndSqlFile.xml")
 				.setDslName("scrollQuery")
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
-//				.setQueryUrl("dbdemo/_search")
-				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
-					String formate = "yyyy.MM.dd";
-					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
-					String startTime = dateFormat.format(lastEndTime);
-					Date endTime = new Date();
-					String endTimeStr = dateFormat.format(endTime);
-					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
-//					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
-				})
-				.addParam("fullImport",false)
+				.setQueryUrl("dbdemo/_search");
+//				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
+//					String formate = "yyyy.MM.dd";
+//					SimpleDateFormat dateFormat = new SimpleDateFormat(formate);
+//					String startTime = dateFormat.format(lastEndTime);
+//					Date endTime = new Date();
+//					String endTimeStr = dateFormat.format(endTime);
+//					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
+////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
+//				});
+		importBuilder.setInputConfig(elasticsearchInputConfig).
+				addParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
@@ -140,7 +150,7 @@ public class ES2FileFtpBatchDemo {
 			}
 
 			@Override
-			public void throwException(TaskContext taskContext, Exception e) {
+			public void throwException(TaskContext taskContext, Throwable e) {
 				System.out.println("throwException 1");
 			}
 		});
@@ -149,7 +159,7 @@ public class ES2FileFtpBatchDemo {
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
 		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2fileftp_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("es2fileftp1_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
@@ -241,18 +251,15 @@ public class ES2FileFtpBatchDemo {
 		//映射和转换配置结束
 
 		/**
-		 * 一次、作业创建一个内置的线程池，实现多线程并行数据导入elasticsearch功能，作业完毕后关闭线程池
+		 * 内置线程池配置，实现多线程并行数据导入功能，作业完成退出时自动关闭该线程池
 		 */
 		importBuilder.setParallel(false);//设置为多线程并行批量导入,false串行
 		importBuilder.setQueue(10);//设置批量导入线程池等待队列长度
 		importBuilder.setThreadCount(50);//设置批量导入线程池工作线程数量
 		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
-		importBuilder.setAsyn(false);//true 异步方式执行，不等待所有导入作业任务结束，方法快速返回；false（默认值） 同步方式执行，等待所有导入作业任务结束，所有作业结束后方法才返回
 //		importBuilder.setDebugResponse(false);//设置是否将每次处理的reponse打印到日志文件中，默认false，不打印响应报文将大大提升性能，只有在调试需要的时候才打开，log日志级别同时要设置为INFO
 //		importBuilder.setDiscardBulkResponse(true);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认true，如果不需要响应报文将大大提升处理速度
 		importBuilder.setPrintTaskLog(true);
-		importBuilder.setDebugResponse(false);//设置是否将每次处理的reponse打印到日志文件中，默认false
-		importBuilder.setDiscardBulkResponse(true);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认false
 
 		/**
 		 * 执行es数据导入数据库表操作

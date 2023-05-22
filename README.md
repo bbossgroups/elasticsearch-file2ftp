@@ -2,9 +2,9 @@
 通过bboss数据同步工具，可以非常高效快速方便地将Elasticsearch和Database中的数据实时导出到文件并上传到SFTP/FTP服务器
 # BBoss Environmental requirements
 
-JDK requirement: JDK 1.7+
+JDK requirement: JDK 1.8+
 
-Elasticsearch version requirements: 1.x,2.X,5.X,6.X,+
+Elasticsearch version requirements: 1.x,2.X,5.X,6.X,7.x,8.x,+
 
 Spring booter 1.x,2.x,+
 # bboss elasticsearch 数据导入sftp/ftp工具demo
@@ -14,7 +14,7 @@ Spring booter 1.x,2.x,+
 mysql,maridb，postgress,oracle ,sqlserver,db2等
 
 支持的Elasticsearch版本：
-1.x,2.x,5.x,6.x,+
+1.x,2.x,5.x,6.x,7.x,8.x,+
 
 支持海量PB级数据同步导入功能
 支持sftp/ftp
@@ -33,26 +33,32 @@ https://esdoc.bbossgroups.com/#/bboss-build
 
 从上面的地址下载源码工程，然后导入idea或者eclipse，根据自己的需求，修改导入程序逻辑
 
-org.frameworkset.elasticsearch.imp.Dbdemo
+org.frameworkset.elasticsearch.imp.ES2FileFtpDemo
 
 如果需要测试和调试导入功能，运行Dbdemo的main方法即可即可：
 
 
 ```java
-public class Dbdemo {
-	public static void main(String args[]){
+public static void main(String[] args){
+		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
+		importBuilder.setBatchSize(500).setFetchSize(1000);
+		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		FileOupputConfig fileFtpOupputConfig = new FileOupputConfig();
+		FtpOutConfig ftpOutConfig = new FtpOutConfig();
+		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
 
-		long t = System.currentTimeMillis();
-		Dbdemo dbdemo = new Dbdemo();
-		String repsonse = ElasticSearchHelper.getRestClientUtil().getIndice("dbdemo");
-		boolean dropIndice = true;//CommonLauncher.getBooleanAttribute("dropIndice",false);//同时指定了默认值
-		dbdemo.scheduleImportData(  dropIndice);//定时增量导入
-//		dbdemo.scheduleFullImportData(dropIndice);//定时全量导入
+		ftpOutConfig.setBackupSuccessFiles(true);
+		ftpOutConfig.setTransferEmptyFiles(true);
+		ftpOutConfig.setFtpIP(ftpIp);
 
-//		dbdemo.scheduleFullAutoUUIDImportData(dropIndice);//定时全量导入，自动生成UUID
-//		dbdemo.scheduleDatePatternImportData(dropIndice);//定时增量导入，按日期分表yyyy.MM.dd
-	}
-    .....
+		ftpOutConfig.setFtpPort(5322);
+		ftpOutConfig.setFtpUser("ecs");
+		ftpOutConfig.setFtpPassword("ecs@123");
+		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
+		ftpOutConfig.setKeepAliveTimeout(100000);
+		ftpOutConfig.setFailedFileResendInterval(-1);
+		fileFtpOupputConfig.setFileDir("D:\\workdir");
+       .....
 }
 ```
 
