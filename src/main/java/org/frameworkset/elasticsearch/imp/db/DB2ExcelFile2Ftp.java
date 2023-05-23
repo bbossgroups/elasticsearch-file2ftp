@@ -59,7 +59,7 @@ public class DB2ExcelFile2Ftp {
 
         ExcelFileOutputConfig fileFtpOupputConfig = new ExcelFileOutputConfig();
 
-        String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+        String ftpIp = CommonLauncher.getProperty("ftpIP","localhost");//同时指定了默认值
         FtpOutConfig ftpOutConfig = new FtpOutConfig();
         fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
         ftpOutConfig.setBackupSuccessFiles(true);

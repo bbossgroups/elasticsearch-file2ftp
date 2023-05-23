@@ -51,7 +51,7 @@ public class ES2FileFtpSerialDemo {
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(-1).setSerialAllData(true) // < 0为serial执行，串行大条记录处理时，把所有记录一次性加载导入，还是单条逐条导入 true 一次性加载导入， false 逐条加载导入
 				.setFetchSize(1000);
-		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		String ftpIp = CommonLauncher.getProperty("ftpIP","localhost");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
 		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
