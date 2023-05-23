@@ -70,7 +70,7 @@ public class Filelog2FileFtpDemo {
 		importBuilder.setBatchSize(500).setFetchSize(1000);
 
 
-		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		String ftpIp = CommonLauncher.getProperty("ftpIP","127.0.0.1");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
 		ftpOutConfig.setBackupSuccessFiles(true);

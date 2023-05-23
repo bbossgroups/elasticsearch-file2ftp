@@ -42,7 +42,7 @@ org.frameworkset.elasticsearch.imp.ES2FileFtpDemo
 public static void main(String[] args){
 		ES2FileFtpExportBuilder importBuilder = new ES2FileFtpExportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
-		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		String ftpIp = CommonLauncher.getProperty("ftpIP","localhost");//同时指定了默认值
 		FileOupputConfig fileFtpOupputConfig = new FileOupputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
 		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
