@@ -52,8 +52,8 @@ public static void main(String[] args){
 		ftpOutConfig.setFtpIP(ftpIp);
 
 		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("ecs");
-		ftpOutConfig.setFtpPassword("ecs@123");
+		ftpOutConfig.setFtpUser("root");
+		ftpOutConfig.setFtpPassword("123456");
 		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
 		ftpOutConfig.setKeepAliveTimeout(100000);
 		ftpOutConfig.setFailedFileResendInterval(-1);
