@@ -48,11 +48,11 @@ public class ES2LocalFileBatchDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(5).setFetchSize(5);
-		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
+		FileOutputConfig fileOupputConfig = new FileOutputConfig();
 
-		fileFtpOupputConfig.setFileDir("D:\\workdir");
+		fileOupputConfig.setFileDir("D:\\workdir");
 
-		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
+		fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName( TaskContext taskContext,int fileSeq) {
 				String formate = "yyyyMMddHHmmss";
@@ -71,19 +71,21 @@ public class ES2LocalFileBatchDemo {
 
 
 
-				return "metrics-report"+_fileSeq + "_"+time +"_" + _fileSeq+".txt";
+				return "metrics-report_"+time +"_" + _fileSeq+".txt";
 			}
 		});
-		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
+		fileOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
-			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
-				SerialUtil.normalObject2json(record.getDatas(),builder);
-				String data = (String)taskContext.getTaskContext().getTaskData("data");
-//				System.out.println(data);
+			public void buildRecord(Context taskContext, CommonRecord record, Writer writer) {
+                //record.getDatas()方法返回当前记录，Map类型，key/value ，key代表字段名称，Value代表值；
+                //可以将当前记录构建为需要的格式，写入到writer对象即可,这里直接将记录转换为json输出
+				SerialUtil.normalObject2json(record.getDatas(),writer);
+                //获取记录对应的元数据信息
+                Map<String, Object> metadatas = record.getMetaDatas();
 
 			}
 		});
-		importBuilder.setOutputConfig(fileFtpOupputConfig);
+		importBuilder.setOutputConfig(fileOupputConfig);
 		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
 		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
