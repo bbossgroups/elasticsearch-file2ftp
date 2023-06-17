@@ -60,9 +60,9 @@ public class ES2FileFtpDemo {
 		ftpOutConfig.setFtpIP(ftpIp);
 
 		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("ecs");
-		ftpOutConfig.setFtpPassword("ecs@123");
-		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
+		ftpOutConfig.setFtpUser("xxx");
+		ftpOutConfig.setFtpPassword("xxx@123");
+		ftpOutConfig.setRemoteFileDir("/home/xxx/failLog");
 		ftpOutConfig.setKeepAliveTimeout(100000);
 		ftpOutConfig.setFailedFileResendInterval(-1);
 		fileFtpOupputConfig.setFileDir("D:\\workdir");

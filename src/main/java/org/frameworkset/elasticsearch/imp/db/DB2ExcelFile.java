@@ -56,11 +56,11 @@ public class DB2ExcelFile {
         ;
 
 
-        ExcelFileOutputConfig fileFtpOupputConfig = new ExcelFileOutputConfig();
-        fileFtpOupputConfig.setTitle("师大2021年新生医保（2021年）申报名单");
-        fileFtpOupputConfig.setSheetName("2021年新生医保申报单");
+        ExcelFileOutputConfig fileOupputConfig = new ExcelFileOutputConfig();
+        fileOupputConfig.setTitle("师大2021年新生医保（2021年）申报名单");
+        fileOupputConfig.setSheetName("2021年新生医保申报单");
 
-        fileFtpOupputConfig.addCellMapping(0,"shebao_org","社保经办机构（建议填写）")
+        fileOupputConfig.addCellMapping(0,"shebao_org","社保经办机构（建议填写）")
                 .addCellMapping(1,"person_no","人员编号")
                 .addCellMapping(2,"name","*姓名")
                 .addCellMapping(3,"cert_type","*证件类型")
@@ -72,9 +72,9 @@ public class DB2ExcelFile {
                 .addCellMapping(7,"zhs_sub_class","征收子目")
                 .addCellMapping(8,"zhs_year","*缴费年度","2022")
                 .addCellMapping(9,"zhs_level","*缴费档次","1");
-        fileFtpOupputConfig.setFileDir("D:\\excelfiles\\hebin");//数据生成目录
+        fileOupputConfig.setFileDir("D:\\excelfiles\\hebin");//数据生成目录
 
-        fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
+        fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
             @Override
             public String genName(TaskContext taskContext, int fileSeq) {
 
@@ -83,7 +83,7 @@ public class DB2ExcelFile {
             }
         });
 
-        importBuilder.setOutputConfig(fileFtpOupputConfig);
+        importBuilder.setOutputConfig(fileOupputConfig);
 //		importBuilder.setIncreamentEndOffset(300);//单位秒
         //vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
         DBInputConfig dbInputConfig= new DBInputConfig();
