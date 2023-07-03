@@ -50,7 +50,7 @@ public class ES2LocalFileBatchDemo {
 		importBuilder.setBatchSize(5).setFetchSize(5);
 		FileOutputConfig fileOupputConfig = new FileOutputConfig();
 
-		fileOupputConfig.setFileDir("D:\\workdir");
+		fileOupputConfig.setFileDir("D:\\workdir\\error");
 
 		fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
