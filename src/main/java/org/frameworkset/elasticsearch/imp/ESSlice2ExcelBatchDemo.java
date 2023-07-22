@@ -27,6 +27,7 @@ import org.frameworkset.tran.plugin.file.output.ExcelFileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
+import org.frameworkset.util.annotations.DateFormateMeta;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -67,9 +68,9 @@ public class ESSlice2ExcelBatchDemo {
         fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
             @Override
             public String genName(TaskContext taskContext, int fileSeq) {
-
-
-                return "师大2021年新生医保（2021年）申报名单-合并-"+fileSeq+".xlsx";
+                Date date = taskContext.getJobStartTime();
+                String time = DateFormateMeta.format(date,"yyyyMMddHHmmss");
+                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".xlsx";
             }
         });
 
@@ -89,18 +90,13 @@ public class ESSlice2ExcelBatchDemo {
 ////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //				})
 		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",true)
+				.addJobInputParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
-				.addParam("var1","v1")
-				.addParam("var2","v2")
-				.addParam("var3","v3");
+				.addJobInputParam("var1","v1")
+				.addJobInputParam("var2","v2")
+				.addJobInputParam("var3","v3");
 
-		//定时任务配置，
-		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
-//					 .setScheduleDate(date) //指定任务开始执行时间：日期
-				.setDeyLay(1000L) // 任务延迟执行deylay毫秒后执行
-				.setPeriod(30000L); //每隔period毫秒执行，如果不设置，只执行一次
-		//定时任务配置结束
+
 
 		//设置任务执行拦截器，可以添加多个
 		importBuilder.addCallInterceptor(new CallInterceptor() {
@@ -120,10 +116,16 @@ public class ESSlice2ExcelBatchDemo {
 				System.out.println("throwException 1");
 			}
 		});
+        //定时任务配置，
+        importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
+//					 .setScheduleDate(date) //指定任务开始执行时间：日期
+                .setDeyLay(1000L) // 任务延迟执行deylay毫秒后执行
+                .setPeriod(30000L); //每隔period毫秒执行，如果不设置，只执行一次
+        //定时任务配置结束
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
+		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
 		importBuilder.setLastValueStorePath("es2excelslice_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
@@ -222,7 +224,7 @@ public class ESSlice2ExcelBatchDemo {
 		importBuilder.setParallel(true);//设置为多线程并行批量导入,false串行
 		importBuilder.setQueue(10);//设置批量导入线程池等待队列长度
 		importBuilder.setThreadCount(10);//设置批量导入线程池工作线程数量
-		importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
+		importBuilder.setContinueOnError(false);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
 //		importBuilder.setDebugResponse(false);//设置是否将每次处理的reponse打印到日志文件中，默认false，不打印响应报文将大大提升性能，只有在调试需要的时候才打开，log日志级别同时要设置为INFO
 //		importBuilder.setDiscardBulkResponse(true);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认true，如果不需要响应报文将大大提升处理速度
 		importBuilder.setPrintTaskLog(true);

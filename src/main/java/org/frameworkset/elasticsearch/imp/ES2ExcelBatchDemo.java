@@ -27,6 +27,7 @@ import org.frameworkset.tran.plugin.file.output.ExcelFileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
+import org.frameworkset.util.annotations.DateFormateMeta;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -68,8 +69,9 @@ public class ES2ExcelBatchDemo {
             @Override
             public String genName(TaskContext taskContext, int fileSeq) {
 
-
-                return "师大2021年新生医保（2021年）申报名单-合并-"+fileSeq+".xlsx";
+                Date date = taskContext.getJobStartTime();
+                String time = DateFormateMeta.format(date,"yyyyMMddHHmmss");
+                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".xlsx";
             }
         });
 
@@ -89,11 +91,11 @@ public class ES2ExcelBatchDemo {
 ////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //				})
 		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",true)
+				.addJobInputParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
-				.addParam("var1","v1")
-				.addParam("var2","v2")
-				.addParam("var3","v3");
+				.addJobInputParam("var1","v1")
+				.addJobInputParam("var2","v2")
+				.addJobInputParam("var3","v3");
 
 		//定时任务配置，
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
