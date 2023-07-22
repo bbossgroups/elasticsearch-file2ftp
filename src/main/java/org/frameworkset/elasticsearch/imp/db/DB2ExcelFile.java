@@ -74,12 +74,14 @@ public class DB2ExcelFile {
                 .addCellMapping(9,"zhs_level","*缴费档次","1");
         fileOupputConfig.setFileDir("D:\\excelfiles\\hebin");//数据生成目录
 
+        fileOupputConfig.setExistFileReplace(false);//替换重名文件，如果不替换，就需要在genname方法返回带序号的文件名称
+        fileOupputConfig.setMaxFileRecordSize(15);
         fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
             @Override
             public String genName(TaskContext taskContext, int fileSeq) {
 
 
-                return "师大2021年新生医保（2021年）申报名单-合并.xlsx";
+                return "师大2021年新生医保（2021年）申报名单-合并-"+fileSeq+".xlsx";
             }
         });
 
@@ -131,7 +133,9 @@ public class DB2ExcelFile {
         /**
          * 内置线程池配置，实现多线程并行数据导入功能，作业完成退出时自动关闭该线程池
          */
-        importBuilder.setParallel(false);//设置为多线程并行批量导入,false串行
+        importBuilder.setParallel(true);//设置为多线程并行批量导入,false串行
+        importBuilder.setThreadCount(3);
+        importBuilder.setQueue(10);
         importBuilder.setContinueOnError(true);//任务出现异常，是否继续执行作业：true（默认值）继续执行 false 中断作业执行
         importBuilder.setPrintTaskLog(true);
 
