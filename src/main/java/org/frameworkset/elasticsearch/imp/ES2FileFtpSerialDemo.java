@@ -54,17 +54,19 @@ public class ES2FileFtpSerialDemo {
 		String ftpIp = CommonLauncher.getProperty("ftpIP","localhost");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
-		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
-		ftpOutConfig.setBackupSuccessFiles(true);
-		ftpOutConfig.setTransferEmptyFiles(true);
-		ftpOutConfig.setFtpIP(ftpIp);
 
-		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("ecs");
-		ftpOutConfig.setFtpPassword("ecs@123");
-		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog");
-		ftpOutConfig.setKeepAliveTimeout(100000);
-		ftpOutConfig.setFailedFileResendInterval(300000);
+		ftpOutConfig.setBackupSuccessFiles(true)
+                .setTransferEmptyFiles(true)
+                .setFtpIP(ftpIp)
+                .setFtpPort(5322)
+                .setFtpUser("ecs")
+                .setFtpPassword("ecs@123")
+                .setRemoteFileDir("/home/ecs/failLog")
+                .setKeepAliveTimeout(100000)
+                .setFailedFileResendInterval(300000);
+
+        fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
+
 		fileFtpOupputConfig.setFileDir("D:\\workdir");
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override

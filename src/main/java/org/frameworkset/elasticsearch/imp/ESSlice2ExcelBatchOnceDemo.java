@@ -26,7 +26,6 @@ import org.frameworkset.tran.output.fileftp.FilenameGenerator;
 import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
 import org.frameworkset.tran.plugin.file.output.ExcelFileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
-import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
 import org.frameworkset.util.annotations.DateFormateMeta;
 import org.slf4j.Logger;
@@ -44,8 +43,8 @@ import java.util.Map;
  * @author biaoping.yin
  * @version 1.0
  */
-public class ESSlice2ExcelBatchDemo {
-    private static Logger logger = LoggerFactory.getLogger(ESSlice2ExcelBatchDemo.class);
+public class ESSlice2ExcelBatchOnceDemo {
+    private static Logger logger = LoggerFactory.getLogger(ESSlice2ExcelBatchOnceDemo.class);
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
         int batchSize = PropertiesUtil.getPropertiesContainer().getIntProperty("batchSize",5);
@@ -68,7 +67,7 @@ public class ESSlice2ExcelBatchDemo {
 ////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //				})
         importBuilder.setInputConfig(elasticsearchInputConfig)
-                .addJobInputParam("fullImport",false)
+                .addJobInputParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
                 .addJobInputParam("var1","v1")
                 .addJobInputParam("var2","v2")
@@ -91,12 +90,17 @@ public class ESSlice2ExcelBatchDemo {
                 .addCellMapping(8,"zhs_year","*缴费年度","2022")
                 .addCellMapping(9,"zhs_level","*缴费档次","1")
                 .addCellMapping(10,"author","*作者","1")
-         .addCellMapping(11,"logOperuser","操作员").addCellMapping(11,"message","消息").addCellMapping(12,"timestamp","操作时间")
-                .addCellMapping(13,"newcollecttime","采集时间").addCellMapping(14,"tag","tag");
+                 .addCellMapping(11,"logOperuser","操作员")
+                .addCellMapping(11,"message","消息")
+                .addCellMapping(12,"timestamp","操作时间")
+                .addCellMapping(13,"newcollecttime","采集时间")
+                .addCellMapping(14,"tag","tag");
         fileOupputConfig.setFileDir("D:\\excelfiles\\hebin");//数据生成目录
 
         fileOupputConfig.setExistFileReplace(true);//替换重名文件，如果不替换，就需要在genname方法返回带序号的文件名称
-
+        int maxFileRecordSize = PropertiesUtil.getPropertiesContainer().getIntProperty("maxFileRecordSize",-1);
+        if(maxFileRecordSize > 0)
+            fileOupputConfig.setMaxFileRecordSize(maxFileRecordSize);
         fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
             @Override
             public String genName(TaskContext taskContext, int fileSeq) {
@@ -105,18 +109,6 @@ public class ESSlice2ExcelBatchDemo {
                 return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".xlsx";
             }
         });
-//        FtpOutConfig ftpOutConfig = new FtpOutConfig();
-//        ftpOutConfig.setBackupSuccessFiles(true)
-//                .setTransferEmptyFiles(false)
-//                .setFtpIP("192.168.137.133")
-//                .setFtpPort(22)
-//                .setFtpUser("k8s")
-//                .setFtpPassword("123456")
-//                .setRemoteFileDir("/home/k8s/ftptest")
-//                .setKeepAliveTimeout(100000)
-//                .setFailedFileResendInterval(300000)//毫秒
-//                .setTransferProtocol(FtpConfig.TRANSFER_PROTOCOL_SFTP);
-//        fileOupputConfig.setFtpOutConfig(ftpOutConfig);
 
         importBuilder.setOutputConfig(fileOupputConfig);
 
@@ -141,50 +133,8 @@ public class ESSlice2ExcelBatchDemo {
 			}
 		});
 
-        //定时任务配置，
-        importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
-//					 .setScheduleDate(date) //指定任务开始执行时间：日期
-                .setDeyLay(1000L) // 任务延迟执行deylay毫秒后执行
-                .setPeriod(30000L); //每隔period毫秒执行，如果不设置，只执行一次
-        //定时任务配置结束
-//		//设置任务执行拦截器结束，可以添加多个
-		//增量配置开始
-		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
-		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2excelsliceftp_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
-//		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
-		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
-		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
-//		importBuilder.setLastValue(new Date());
-		//增量配置结束
-
-		//映射和转换配置开始
-//		/**
-//		 * db-es mapping 表字段名称到es 文档字段的映射：比如document_id -> docId
-//		 * 可以配置mapping，也可以不配置，默认基于java 驼峰规则进行db field-es field的映射和转换
-//		 */
-//		importBuilder.addFieldMapping("document_id","docId")
-//				.addFieldMapping("docwtime","docwTime")
-//				.addIgnoreFieldMapping("channel_id");//添加忽略字段
-//
-//
-//		/**
-//		 * 为每条记录添加额外的字段和值
-//		 * 可以为基本数据类型，也可以是复杂的对象
-//		 */
-//		importBuilder.addFieldValue("testF1","f1value");
-//		importBuilder.addFieldValue("testInt",0);
-//		importBuilder.addFieldValue("testDate",new Date());
-//		importBuilder.addFieldValue("testFormateDate","yyyy-MM-dd HH",new Date());
-//		TestObject testObject = new TestObject();
-//		testObject.setId("testid");
-//		testObject.setName("jackson");
-//		importBuilder.addFieldValue("testObject",testObject);
 		importBuilder.addFieldValue("author","张无忌");
-//		importBuilder.addFieldMapping("operModule","OPER_MODULE");
-//		importBuilder.addFieldMapping("logContent","LOG_CONTENT");
-//		importBuilder.addFieldMapping("logOperuser","LOG_OPERUSER");
+
 
         importBuilder.addFieldMapping("@timestamp","timestamp");
 		/**
