@@ -65,7 +65,7 @@ public class ES2FileFtpDemo {
 		ftpOutConfig.setRemoteFileDir("/home/xxx/failLog");
 		ftpOutConfig.setKeepAliveTimeout(100000);
 		ftpOutConfig.setFailedFileResendInterval(-1);
-		fileFtpOupputConfig.setFileDir("D:\\workdir");
+		fileFtpOupputConfig.setFileDir("c:\\workdir");
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName(TaskContext taskContext, int fileSeq) {
@@ -115,7 +115,8 @@ public class ES2FileFtpDemo {
 					String startTime = dateFormat.format(lastEndTime);
 					Date endTime = new Date();
 					String endTimeStr = dateFormat.format(endTime);
-					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
+                    return "dbdemo/_search";
+//					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				});
 		importBuilder.setInputConfig(elasticsearchInputConfig)
@@ -217,9 +218,15 @@ public class ES2FileFtpDemo {
 				/**
 				 * 获取ip对应的运营商和区域信息
 				 */
-				Map ipInfo = (Map)context.getValue("ipInfo");
-				if(ipInfo != null)
-					context.addFieldValue("ipinfo", SimpleStringUtil.object2json(ipInfo));
+				Object ipInfo = context.getValue("ipInfo");
+                
+				if(ipInfo != null) {
+                    if(ipInfo instanceof String)
+                        context.addFieldValue("ipinfo", ipInfo);
+                    else{
+                        context.addFieldValue("ipinfo", SimpleStringUtil.object2json(ipInfo));
+                    }
+                }
 				else{
 					context.addFieldValue("ipinfo", "");
 				}
