@@ -93,7 +93,7 @@ public class DBTitle2FileDemo {
 		});
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
-			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) throws Exception {
+			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) throws Exception {
 				Map datas = record.getDatas();
 				builder.write(String.valueOf(datas.get("title")));
 			}

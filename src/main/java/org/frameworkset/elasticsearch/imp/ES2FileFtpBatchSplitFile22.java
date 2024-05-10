@@ -65,7 +65,7 @@ public class ES2FileFtpBatchSplitFile22 {
 		//指定文件中每条记录格式，不指定默认为json格式输出
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
-			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
+			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) {
 				//直接将记录按照json格式输出到文本文件中
 				SerialUtil.normalObject2json(record.getDatas(), builder);//获取记录中的字段数据
 			}

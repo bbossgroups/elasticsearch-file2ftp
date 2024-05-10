@@ -100,7 +100,7 @@ public class Excel2FileDemo2 {
 		});
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
-			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) throws IOException {
+			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) throws IOException {
 				Integer v = (Integer) record.getData("works");
 
 				String works = String.valueOf(v);

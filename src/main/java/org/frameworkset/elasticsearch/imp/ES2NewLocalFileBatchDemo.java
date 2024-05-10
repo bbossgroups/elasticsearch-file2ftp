@@ -76,9 +76,9 @@ public class ES2NewLocalFileBatchDemo {
 		});
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
-			public void buildRecord(Context taskContext, CommonRecord record, Writer builder) {
+			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) {
 				SerialUtil.normalObject2json(record.getDatas(),builder);
-				String data = (String)taskContext.getTaskContext().getTaskData("data");
+				String data = (String)taskContext.getTaskData("data");
 //				System.out.println(data);
 
 			}

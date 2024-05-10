@@ -82,7 +82,7 @@ public class DB2CSVFile {
             }
 
             @Override
-            public void buildRecord(Context context, CommonRecord record, Writer builder)throws Exception {
+            public void buildRecord(TaskContext context, CommonRecord record, Writer builder)throws Exception {
                 Map<String,Object> datas = record.getDatas();
                 StringBuilder strBuilder = new StringBuilder();
                 strBuilder.append(datas.get("shebao_org"))   ;
