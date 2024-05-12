@@ -50,7 +50,7 @@ public class ES2LocalFileBatchDemo {
 		importBuilder.setBatchSize(5).setFetchSize(5);
 		FileOutputConfig fileOupputConfig = new FileOutputConfig();
 
-		fileOupputConfig.setFileDir("D:\\workdir\\error");
+		fileOupputConfig.setFileDir("c:\\workdir\\error");
 
 		fileOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
@@ -95,13 +95,13 @@ public class ES2LocalFileBatchDemo {
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
-				.setQueryUrl("metrics-report/_search");
+				.setQueryUrl("dbdemo/_search");
 //				.setQueryUrlFunction((TaskContext taskContext,Date lastStartTime,Date lastEndTime)->{
 //					return "kafkademo/_search";
 ////					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 //				})
 		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",true)
+				.addParam("fullImport",false)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
