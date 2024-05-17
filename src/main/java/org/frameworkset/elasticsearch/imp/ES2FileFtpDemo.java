@@ -36,7 +36,6 @@ import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * <p>Description: elasticsearch到sftp数据上传案例</p>
@@ -50,7 +49,7 @@ public class ES2FileFtpDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
-		String ftpIp = CommonLauncher.getProperty("ftpIP","localhost");//同时指定了默认值
+		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
 		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
@@ -60,12 +59,14 @@ public class ES2FileFtpDemo {
 		ftpOutConfig.setFtpIP(ftpIp);
 
 		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("xxx");
-		ftpOutConfig.setFtpPassword("xxx@123");
-		ftpOutConfig.setRemoteFileDir("/home/xxx/failLog");
+		ftpOutConfig.setFtpUser("ecs");
+		ftpOutConfig.setFtpPassword("hnyd#432!");
+		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog/ES2FileFtpDemo");
 		ftpOutConfig.setKeepAliveTimeout(100000);
 		ftpOutConfig.setFailedFileResendInterval(-1);
-		fileFtpOupputConfig.setFileDir("c:\\workdir");
+        ftpOutConfig.setSendFileAsyn(true);//异步发送文件
+        fileFtpOupputConfig.setMaxFileRecordSize(10);
+		fileFtpOupputConfig.setFileDir("c:/workdir/ES2FileFtpDemo");
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override
 			public String genName(TaskContext taskContext, int fileSeq) {
@@ -154,7 +155,7 @@ public class ES2FileFtpDemo {
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
+		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
 		importBuilder.setLastValueStorePath("es2fileftp_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
