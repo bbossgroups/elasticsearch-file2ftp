@@ -81,7 +81,7 @@ public class DB2FileFtp {
         Integer dbMinIdleSize = CommonLauncher.getIntProperty("db.minIdleSize", 100);
         Integer dbMaxSize = CommonLauncher.getIntProperty("db.maxSize", 1000);
         Integer dbJdbcFetchSize = CommonLauncher.getIntProperty("db.jdbcFetchSize", 10000);
-        boolean columnLableUpperCase = CommonLauncher.getBooleanAttribute("db.columnLableUpperCase", true);
+        boolean columnLableUpperCase = CommonLauncher.getBooleanAttribute("db.columnLableUpperCase", false);
         DBInputConfig dbInputConfig= new DBInputConfig();
         dbInputConfig
 
