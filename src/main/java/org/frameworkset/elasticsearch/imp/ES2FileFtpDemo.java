@@ -49,7 +49,7 @@ public class ES2FileFtpDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
-		String ftpIp = CommonLauncher.getProperty("ftpIP","10.13.6.127");//同时指定了默认值
+		String ftpIp = CommonLauncher.getProperty("ftpIP","172.24.176.18");//同时指定了默认值
 		FileOutputConfig fileFtpOupputConfig = new FileOutputConfig();
 		FtpOutConfig ftpOutConfig = new FtpOutConfig();
 		fileFtpOupputConfig.setFtpOutConfig(ftpOutConfig);
@@ -58,14 +58,14 @@ public class ES2FileFtpDemo {
 		ftpOutConfig.setTransferEmptyFiles(true);
 		ftpOutConfig.setFtpIP(ftpIp);
 
-		ftpOutConfig.setFtpPort(5322);
-		ftpOutConfig.setFtpUser("ecs");
-		ftpOutConfig.setFtpPassword("hnyd#432!");
-		ftpOutConfig.setRemoteFileDir("/home/ecs/failLog/ES2FileFtpDemo");
+		ftpOutConfig.setFtpPort(22);
+		ftpOutConfig.setFtpUser("wsl");
+		ftpOutConfig.setFtpPassword("#EDC4rfv");
+		ftpOutConfig.setRemoteFileDir("/home/wsl/ftp");
 		ftpOutConfig.setKeepAliveTimeout(100000);
 		ftpOutConfig.setFailedFileResendInterval(-1);
         ftpOutConfig.setSendFileAsyn(true);//异步发送文件
-        fileFtpOupputConfig.setMaxFileRecordSize(10);
+        fileFtpOupputConfig.setMaxFileRecordSize(1000);
 		fileFtpOupputConfig.setFileDir("c:/workdir/ES2FileFtpDemo");
 		fileFtpOupputConfig.setFilenameGenerator(new FilenameGenerator() {
 			@Override

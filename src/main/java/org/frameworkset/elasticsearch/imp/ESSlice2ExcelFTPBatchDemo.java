@@ -77,16 +77,18 @@ public class ESSlice2ExcelFTPBatchDemo {
         });
 
         FtpOutConfig ftpOutConfig = new FtpOutConfig();
-        ftpOutConfig.setBackupSuccessFiles(true)
-                .setTransferEmptyFiles(true)
+        ftpOutConfig
                 .setFtpIP("192.168.137.133")
                 .setFtpPort(22)
                 .setFtpUser("k8s")
                 .setFtpPassword("123456")
                 .setRemoteFileDir("/home/k8s/ftptest")
                 .setKeepAliveTimeout(100000)
+                .setTransferProtocol(FtpConfig.TRANSFER_PROTOCOL_SFTP)
+                .setBackupSuccessFiles(true)
+                .setTransferEmptyFiles(true)
                 .setFailedFileResendInterval(300000)
-                .setTransferProtocol(FtpConfig.TRANSFER_PROTOCOL_SFTP);
+                ;
 
         fileOupputConfig.setFtpOutConfig(ftpOutConfig);
 
