@@ -139,7 +139,7 @@ configure(allprojects) { project ->
 				[group: 'com.bbossgroups.plugins', name: 'bboss-datatran-fileftp', version: "${bboss_es_version}", transitive: true],
 				[group: 'com.bbossgroups', name: 'bboss-schedule', version: "${bboss_version}", transitive: true],
 		)
-
+        api group: 'io.minio', name: 'minio', version: '8.5.13'
 		api 'org.xerial:sqlite-jdbc:3.45.1.0'
 		//mysql 8.0依赖
 		//api group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
