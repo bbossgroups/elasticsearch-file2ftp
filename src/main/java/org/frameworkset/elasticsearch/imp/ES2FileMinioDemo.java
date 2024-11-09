@@ -17,14 +17,12 @@ package org.frameworkset.elasticsearch.imp;
 
 import com.frameworkset.util.SimpleStringUtil;
 import org.frameworkset.elasticsearch.serial.SerialUtil;
-import org.frameworkset.runtime.CommonLauncher;
 import org.frameworkset.tran.CommonRecord;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
 import org.frameworkset.tran.config.ImportBuilder;
 import org.frameworkset.tran.context.Context;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
-import org.frameworkset.tran.output.ftp.FtpOutConfig;
 import org.frameworkset.tran.output.minio.MinioFileConfig;
 import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
 import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
@@ -39,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * <p>Description: elasticsearch到sftp数据上传案例</p>
+ * <p>Description: 采集elasticsearch数据到文件，并上传OSS对象数据库Minio案例</p>
  * <p></p>
  * <p>Copyright (c) 2020</p>
  * @Date 2021/2/1 14:39
@@ -268,7 +266,7 @@ public class ES2FileMinioDemo {
 		importBuilder.setPrintTaskLog(true);
 
 		/**
-		 * 执行es数据导入数据库表操作
+		 * 执行es数据导入上传Minio作业
 		 */
 		DataStream dataStream = importBuilder.builder();
 		dataStream.execute();//执行导入操作
