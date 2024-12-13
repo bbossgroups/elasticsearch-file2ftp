@@ -53,7 +53,7 @@ public class ES2FileMinioDemo {
 		fileOutputConfig.setMinioFileConfig(minioFileConfig);
 
 		minioFileConfig.setBackupSuccessFiles(true);
-		minioFileConfig.setTransferEmptyFiles(true);
+		minioFileConfig.setTransferEmptyFiles(false);
 		minioFileConfig.setEndpoint("http://172.24.176.18:9000");
 
 		minioFileConfig.setName("miniotest");
@@ -105,7 +105,7 @@ public class ES2FileMinioDemo {
 		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
 		elasticsearchInputConfig
 				.setDslFile("dsl2ndSqlFile.xml")
-				.setDslName("scrollQuery")
+				.setDslName("scrollQuerysftp")
 				.setScrollLiveTime("10m")
 //				.setSliceQuery(true)
 //				.setSliceSize(5)
@@ -116,7 +116,7 @@ public class ES2FileMinioDemo {
 					String startTime = dateFormat.format(lastEndTime);
 					Date endTime = new Date();
 					String endTimeStr = dateFormat.format(endTime);
-                    return "dbdemo/_search";
+                    return "sftp-data/_search";
 //					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				});
@@ -154,10 +154,10 @@ public class ES2FileMinioDemo {
 		});
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
-		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
+		importBuilder.setLastValueColumn("g_var1");//手动指定日期增量查询字段变量名称
 		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2fileftp_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("es2fileminio_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
