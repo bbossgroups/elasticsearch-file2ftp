@@ -26,6 +26,7 @@ import org.frameworkset.tran.output.fileftp.FilenameGenerator;
 import org.frameworkset.tran.output.ftp.FtpOutConfig;
 import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
 import org.frameworkset.tran.plugin.file.output.ExcelFileOutputConfig;
+import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
@@ -43,28 +44,13 @@ import java.util.Map;
  * @author biaoping.yin
  * @version 1.0
  */
-public class ESSlice2ExcelFTPBatchDemo {
+public class ESSlice2TextFTPBatchDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(5).setFetchSize(5);
-        ExcelFileOutputConfig fileOupputConfig = new ExcelFileOutputConfig();
-        fileOupputConfig.setTitle("师大2021年新生医保（2021年）申报名单");
-        fileOupputConfig.setSheetName("2021年新生医保申报单");
+        FileOutputConfig fileOupputConfig = new FileOutputConfig();
 
-        fileOupputConfig.addCellMapping(0,"author","author")
-                .addCellMapping(1,"operModule","operModule")
-                .addCellMapping(2,"operType","*operType")
-                .addCellMapping(3,"title","*title")
-
-                .addCellMapping(4,"logVisitorial","*logVisitorial","")
-                .addCellMapping(5,"logOperuser","*logOperuser")
-
-                .addCellMapping(6,"ipinfo","*ipinfo")
-                .addCellMapping(7,"logOpertime","logOpertime")
-                .addCellMapping(8,"logId","*logId")
-                .addCellMapping(9,"collecttime","*collecttime")
-                .addCellMapping(10,"subtitle","*subtitle")
-                .addCellMapping(11,"remark1","*remark1");
+         
         
         fileOupputConfig.setFileDir("C:\\workdir\\excels");//数据生成目录
 
@@ -75,7 +61,7 @@ public class ESSlice2ExcelFTPBatchDemo {
             public String genName(TaskContext taskContext, int fileSeq) {
                 Date date = taskContext.getJobStartTime();
                 String time = DateFormateMeta.format(date,"yyyyMMddHHmmss");
-                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".xlsx";
+                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".txt";
             }
         });
 
@@ -150,7 +136,7 @@ public class ESSlice2ExcelFTPBatchDemo {
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
 		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2excelftpslice_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("es2txtftpslice_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型

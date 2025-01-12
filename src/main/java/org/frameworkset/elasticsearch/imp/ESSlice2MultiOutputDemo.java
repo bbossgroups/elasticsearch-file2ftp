@@ -17,6 +17,7 @@ package org.frameworkset.elasticsearch.imp;
 
 import com.frameworkset.util.SimpleStringUtil;
 import org.frameworkset.elasticsearch.serial.SerialUtil;
+import org.frameworkset.spi.geoip.IpInfo;
 import org.frameworkset.tran.DataRefactor;
 import org.frameworkset.tran.DataStream;
 import org.frameworkset.tran.config.ImportBuilder;
@@ -25,7 +26,8 @@ import org.frameworkset.tran.ftp.FtpConfig;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
 import org.frameworkset.tran.output.ftp.FtpOutConfig;
 import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
-import org.frameworkset.tran.plugin.file.output.ExcelFileOutputConfig;
+import org.frameworkset.tran.plugin.es.output.ElasticsearchOutputConfig;
+import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
 import org.frameworkset.tran.schedule.ImportIncreamentConfig;
 import org.frameworkset.tran.schedule.TaskContext;
@@ -43,28 +45,13 @@ import java.util.Map;
  * @author biaoping.yin
  * @version 1.0
  */
-public class ESSlice2ExcelFTPBatchDemo {
+public class ESSlice2MultiOutputDemo {
 	public static void main(String[] args){
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(5).setFetchSize(5);
-        ExcelFileOutputConfig fileOupputConfig = new ExcelFileOutputConfig();
-        fileOupputConfig.setTitle("师大2021年新生医保（2021年）申报名单");
-        fileOupputConfig.setSheetName("2021年新生医保申报单");
+        FileOutputConfig fileOupputConfig = new FileOutputConfig();
 
-        fileOupputConfig.addCellMapping(0,"author","author")
-                .addCellMapping(1,"operModule","operModule")
-                .addCellMapping(2,"operType","*operType")
-                .addCellMapping(3,"title","*title")
-
-                .addCellMapping(4,"logVisitorial","*logVisitorial","")
-                .addCellMapping(5,"logOperuser","*logOperuser")
-
-                .addCellMapping(6,"ipinfo","*ipinfo")
-                .addCellMapping(7,"logOpertime","logOpertime")
-                .addCellMapping(8,"logId","*logId")
-                .addCellMapping(9,"collecttime","*collecttime")
-                .addCellMapping(10,"subtitle","*subtitle")
-                .addCellMapping(11,"remark1","*remark1");
+         
         
         fileOupputConfig.setFileDir("C:\\workdir\\excels");//数据生成目录
 
@@ -75,7 +62,7 @@ public class ESSlice2ExcelFTPBatchDemo {
             public String genName(TaskContext taskContext, int fileSeq) {
                 Date date = taskContext.getJobStartTime();
                 String time = DateFormateMeta.format(date,"yyyyMMddHHmmss");
-                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".xlsx";
+                return "师大2021年新生医保（2021年）申报名单-合并-"+time+"-"+fileSeq+".txt";
             }
         });
 
@@ -91,12 +78,32 @@ public class ESSlice2ExcelFTPBatchDemo {
                 .setBackupSuccessFiles(true)
                 .setTransferEmptyFiles(true)
                 .setFailedFileResendInterval(300000)
+                .setSendFileAsyn(true)
                 ;
 
         fileOupputConfig.setFtpOutConfig(ftpOutConfig);
 
 
-        importBuilder.setOutputConfig(fileOupputConfig);
+        importBuilder.addOutputConfig(fileOupputConfig);
+
+        ElasticsearchOutputConfig elasticsearchOutputConfig = new ElasticsearchOutputConfig();
+        elasticsearchOutputConfig
+                .addTargetElasticsearch("elasticsearch.serverNames","default")
+                .addElasticsearchProperty("default.elasticsearch.rest.hostNames","192.168.137.1:9200")
+                .addElasticsearchProperty("default.elasticsearch.showTemplate","false")
+                .addElasticsearchProperty("default.elasticUser","elastic")
+                .addElasticsearchProperty("default.elasticPassword","changeme")
+                .addElasticsearchProperty("default.elasticsearch.failAllContinue","true")
+                .addElasticsearchProperty("default.http.timeoutSocket","60000")
+                .addElasticsearchProperty("default.http.timeoutConnection","40000")
+                .addElasticsearchProperty("default.http.connectionRequestTimeout","70000")
+                .addElasticsearchProperty("default.http.maxTotal","200")
+                .addElasticsearchProperty("default.http.defaultMaxPerRoute","100")
+                .setIndex("multidbdemo")
+                .setEsIdField("logId")//设置文档主键，不设置，则自动产生文档id
+                .setDebugResponse(false)//设置是否将每次处理的reponse打印到日志文件中，默认false
+                .setDiscardBulkResponse(false);//设置是否需要批量处理的响应报文，不需要设置为false，true为需要，默认false
+        importBuilder.addOutputConfig(elasticsearchOutputConfig);
 		importBuilder.setIncreamentEndOffset(300);//单位秒，同步从上次同步截止时间当前时间前5分钟的数据，下次继续从上次截止时间开始同步数据
 		//vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27
 		ElasticsearchInputConfig elasticsearchInputConfig = new ElasticsearchInputConfig();
@@ -148,9 +155,9 @@ public class ESSlice2ExcelFTPBatchDemo {
 //		//设置任务执行拦截器结束，可以添加多个
 		//增量配置开始
 		importBuilder.setLastValueColumn("collecttime");//手动指定日期增量查询字段变量名称
-		importBuilder.setFromFirst(false);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
+		importBuilder.setFromFirst(true);//setFromfirst(false)，如果作业停了，作业重启后从上次截止位置开始采集数据，
 		//setFromfirst(true) 如果作业停了，作业重启后，重新开始采集数据
-		importBuilder.setLastValueStorePath("es2excelftpslice_batchimport");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
+		importBuilder.setLastValueStorePath("es2multi_import");//记录上次采集的增量字段值的文件路径，作为下次增量（或者重启后）采集数据的起点，不同的任务这个路径要不一样
 //		importBuilder.setLastValueStoreTableName("logs");//记录上次采集的增量字段值的表，可以不指定，采用默认表名increament_tab
 		importBuilder.setLastValueType(ImportIncreamentConfig.TIMESTAMP_TYPE);//如果没有指定增量查询字段名称，则需要指定字段类型：ImportIncreamentConfig.NUMBER_TYPE 数字类型
 		// 或者ImportIncreamentConfig.TIMESTAMP_TYPE 日期类型
@@ -159,9 +166,11 @@ public class ESSlice2ExcelFTPBatchDemo {
 
 		//映射和转换配置开始
  
-		importBuilder.addFieldValue("author","张无忌"); 
+		importBuilder.addFieldValue("author","张无忌");
 
-
+        importBuilder.setGeoipDatabase("C:/workdir/geolite2/GeoLite2-City.mmdb");
+        importBuilder.setGeoipAsnDatabase("C:/workdir/geolite2/GeoLite2-ASN.mmdb");
+        importBuilder.setGeoip2regionDatabase("C:/workdir/geolite2/ip2region.db");
 		/**
 		 * 重新设置es数据结构
 		 */
@@ -189,7 +198,7 @@ public class ESSlice2ExcelFTPBatchDemo {
 				/**
 				 * 获取ip对应的运营商和区域信息
 				 */
-				Map ipInfo = (Map)context.getValue("ipInfo");
+				IpInfo ipInfo =  context.getIpInfo("logVisitorial");
 				if(ipInfo != null)
 					context.addFieldValue("ipinfo", SimpleStringUtil.object2json(ipInfo));
 				else{
