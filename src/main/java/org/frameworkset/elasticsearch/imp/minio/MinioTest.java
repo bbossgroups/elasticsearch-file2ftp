@@ -42,13 +42,13 @@ public class MinioTest {
         minioConfig.setWriteTimeout(5000);
 
         minioConfig.setMaxFilePartSize(10*1024*1024*1024);
-        boolean result = MinioHelper.init(minioConfig);//
+        boolean result = MinioHelper.init(minioConfig);
 
 
         Minio minio = MinioHelper.getMinio("miniotest");
-        minio.downloadObject("etlfiles","HN_BOSS_TRADE_202501092032_000001.txt","C:/data/filedown/HN_BOSS_TRADE_202501092032_000005.txt");
+        minio.downloadObject("etlfiles","HN_BOSS_TRADE_202501092032_000001.txt","C:/data/filedown/HN_BOSS_TRADE_202501092032_000006.txt");
         minio.createBucket("filedown");
         minio.uploadObject("C:/data/filedown/HN_BOSS_TRADE_202501092032_000004.txt","filedown","HN_BOSS_TRADE_202501092032_000001.txt");
-        
+        minio.deleteOssFile("filedown","HN_BOSS_TRADE_202501092032_000001.txt");
     }
 }
