@@ -28,7 +28,7 @@ import org.frameworkset.nosql.minio.MinioHelper;
  */
 public class MinioTest {
     public static void main(String[] args) throws Exception {
-        //1. 初始化Minio数据源chan_fqa，用来操作Minio数据库，一个Minio数据源只需要定义一次即可，后续通过名称chan_fqa反复引用，多线程安全
+        //1. 初始化Minio数据源chan_fqa，用来操作Minio数据库，一个Minio数据源只需要定义一次即可，后续通过名称miniotest反复引用，多线程安全
         // 可以通过以下方法定义多个Minio数据源，只要name不同即可，通过名称引用对应的数据源
         MinioConfig minioConfig = new MinioConfig();
 
@@ -44,11 +44,12 @@ public class MinioTest {
         minioConfig.setMaxFilePartSize(10*1024*1024*1024);
         boolean result = MinioHelper.init(minioConfig);
 
-
+        //获取数据源
         Minio minio = MinioHelper.getMinio("miniotest");
-        minio.downloadObject("etlfiles","HN_BOSS_TRADE_202501092032_000001.txt","C:/data/filedown/HN_BOSS_TRADE_202501092032_000006.txt");
+        //操作minio
         minio.createBucket("filedown");
-        minio.uploadObject("C:/data/filedown/HN_BOSS_TRADE_202501092032_000004.txt","filedown","HN_BOSS_TRADE_202501092032_000001.txt");
-        minio.deleteOssFile("filedown","HN_BOSS_TRADE_202501092032_000001.txt");
+        minio.uploadObject("C:/data/filedown/xxxxxaaaa.txt","filedown","xxxxxaaaa.txt");
+        minio.downloadObject("etlfiles","xxxxxaaaa.txt","C:/data/filedown/xxxxxaaaa.txt");
+        minio.deleteOssFile("filedown","xxxxxaaaa.txt");
     }
 }
