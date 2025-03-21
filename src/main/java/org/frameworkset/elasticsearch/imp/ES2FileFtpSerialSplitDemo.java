@@ -89,7 +89,7 @@ public class ES2FileFtpSerialSplitDemo {
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
 			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) {
-				SerialUtil.normalObject2json(record.getDatas(),builder);
+				SerialUtil.object2jsonDisableCloseAndFlush(record.getDatas(),builder);
 				String data = (String)taskContext.getTaskData("data");
 //				System.out.println(data);
 

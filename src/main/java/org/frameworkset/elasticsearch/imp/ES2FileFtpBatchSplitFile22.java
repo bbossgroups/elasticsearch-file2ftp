@@ -67,7 +67,7 @@ public class ES2FileFtpBatchSplitFile22 {
 			@Override
 			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) {
 				//直接将记录按照json格式输出到文本文件中
-				SerialUtil.normalObject2json(record.getDatas(), builder);//获取记录中的字段数据
+				SerialUtil.object2jsonDisableCloseAndFlush(record.getDatas(), builder);//获取记录中的字段数据
 			}
 		});
 		importBuilder.setOutputConfig(fileFtpOupputConfig);

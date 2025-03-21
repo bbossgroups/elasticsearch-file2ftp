@@ -93,7 +93,7 @@ public class ES2FileFtpDemo {
 		fileFtpOupputConfig.setRecordGenerator(new RecordGenerator() {
 			@Override
 			public void buildRecord(TaskContext taskContext, CommonRecord record, Writer builder) {
-				SerialUtil.normalObject2json(record.getDatas(),builder);
+				SerialUtil.object2jsonDisableCloseAndFlush(record.getDatas(),builder);
 				String data = (String)taskContext.getTaskData("data");
 //				System.out.println(data);
 
@@ -121,7 +121,7 @@ public class ES2FileFtpDemo {
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				});
 		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",false)
+				.addParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")
@@ -131,7 +131,7 @@ public class ES2FileFtpDemo {
 		importBuilder.setFixedRate(false)//参考jdk timer task文档对fixedRate的说明
 //					 .setScheduleDate(date) //指定任务开始执行时间：日期
 				.setDeyLay(1000L) // 任务延迟执行deylay毫秒后执行
-				.setPeriod(30000L); //每隔period毫秒执行，如果不设置，只执行一次
+				.setPeriod(10000L); //每隔period毫秒执行，如果不设置，只执行一次
 		//定时任务配置结束
 
 		//设置任务执行拦截器，可以添加多个
