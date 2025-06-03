@@ -23,7 +23,7 @@ import org.frameworkset.tran.DataStream;
 import org.frameworkset.tran.config.ImportBuilder;
 import org.frameworkset.tran.context.Context;
 import org.frameworkset.tran.output.fileftp.FilenameGenerator;
-import org.frameworkset.tran.output.minio.MinioFileConfig;
+import org.frameworkset.tran.output.minio.OSSFileConfig;
 import org.frameworkset.tran.plugin.es.input.ElasticsearchInputConfig;
 import org.frameworkset.tran.plugin.file.output.FileOutputConfig;
 import org.frameworkset.tran.schedule.CallInterceptor;
@@ -49,22 +49,23 @@ public class ES2FileMinioDemo {
 		ImportBuilder importBuilder = new ImportBuilder();
 		importBuilder.setBatchSize(500).setFetchSize(1000);
 		FileOutputConfig fileOutputConfig = new FileOutputConfig();
-		MinioFileConfig minioFileConfig = new MinioFileConfig();
-		fileOutputConfig.setMinioFileConfig(minioFileConfig);
+		OSSFileConfig ossFileConfig = new OSSFileConfig();
+		fileOutputConfig.setOSSFileConfig(ossFileConfig);
 
-		minioFileConfig.setBackupSuccessFiles(true);
-		minioFileConfig.setTransferEmptyFiles(false);
-		minioFileConfig.setEndpoint("http://172.24.176.18:9000");
+		ossFileConfig.setBackupSuccessFiles(true);
+		ossFileConfig.setTransferEmptyFiles(false);
+		ossFileConfig.setEndpoint("http://172.24.176.18:9000");
 
-		minioFileConfig.setName("miniotest");
-		minioFileConfig.setAccessKeyId("O3CBPdUzJICHsMp7pj6h");        
-		minioFileConfig.setSecretAccesskey("Y6o9piJTjhL6wRQcHeI7fRCyeM2LTSavGcCVx8th");
-		minioFileConfig.setConnectTimeout(5000);
-		minioFileConfig.setReadTimeout(5000);
-        minioFileConfig.setWriteTimeout(5000);
-        minioFileConfig.setBucket("etlfiles");
-		minioFileConfig.setFailedFileResendInterval(-1);
-        minioFileConfig.setSendFileAsyn(true);//异步发送文件
+		ossFileConfig.setName("miniotest");
+		ossFileConfig.setAccessKeyId("O3CBPdUzJICHsMp7pj6h");        
+		ossFileConfig.setSecretAccesskey("Y6o9piJTjhL6wRQcHeI7fRCyeM2LTSavGcCVx8th");
+		ossFileConfig.setConnectTimeout(5000);
+		ossFileConfig.setSocketTimeout(5000);
+        ossFileConfig.setPoolMaxIdleConnections(10);
+        ossFileConfig.setBucket("s3etlfile");
+		ossFileConfig.setFailedFileResendInterval(-1);
+        ossFileConfig.setSendFileAsyn(true);//异步发送文件
+        ossFileConfig.setRegion("east-r-a1");
         fileOutputConfig.setMaxFileRecordSize(1000);
 		fileOutputConfig.setFileDir("c:/workdir/ES2FileMinioDemo");
 		fileOutputConfig.setFilenameGenerator(new FilenameGenerator() {
@@ -117,12 +118,12 @@ public class ES2FileMinioDemo {
 					Date endTime = new Date();
 					String endTimeStr = dateFormat.format(endTime);
 //                    return "sftp-data/_search";
-                    return "dbdemo/_search";
+                    return "demo/_search";
 //					return "dbdemo-"+startTime+ ",dbdemo-"+endTimeStr+"/_search";
 //					return "vops-chbizcollect-2020.11.26,vops-chbizcollect-2020.11.27/_search";
 				});
 		importBuilder.setInputConfig(elasticsearchInputConfig)
-				.addParam("fullImport",false)
+				.addParam("fullImport",true)
 //				//添加dsl中需要用到的参数及参数值
 				.addParam("var1","v1")
 				.addParam("var2","v2")

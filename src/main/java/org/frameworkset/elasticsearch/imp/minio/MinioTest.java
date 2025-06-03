@@ -37,9 +37,9 @@ public class MinioTest {
         minioConfig.setName("miniotest");
         minioConfig.setAccessKeyId("N3XNZFqSZfpthypuoOzL");
         minioConfig.setSecretAccesskey("2hkDSEll1Z7oYVfhr0uLEam7r0M4UWT8akEBqO97");
-        minioConfig.setConnectTimeout(5000);
-        minioConfig.setReadTimeout(5000);
-        minioConfig.setWriteTimeout(5000);
+        minioConfig.setConnectTimeout(5000l);
+        minioConfig.setReadTimeout(5000l);
+        minioConfig.setWriteTimeout(5000l);
 
         minioConfig.setMaxFilePartSize(10*1024*1024*1024);
         boolean result = MinioHelper.init(minioConfig);
@@ -48,8 +48,8 @@ public class MinioTest {
         Minio minio = MinioHelper.getMinio("miniotest");
         //操作minio
         minio.createBucket("filedown");
-        minio.uploadObject("C:/data/filedown/xxxxxaaaa.txt","filedown","xxxxxaaaa.txt");
-        minio.downloadObject("etlfiles","xxxxxaaaa.txt","C:/data/filedown/xxxxxaaaa.txt");
-        minio.deleteOssFile("filedown","xxxxxaaaa.txt");
+        minio.uploadObject("C:/data/filedown/HN_BOSS_TRADE_202501092032_000001.txt","filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt");
+        minio.downloadObject("filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt","C:/data/filedown/xxxxxaaaa.txt");
+        minio.deleteOssFile("filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt");
     }
 }
