@@ -153,11 +153,11 @@ configure(allprojects) { project ->
 		)
 
         // AWS依赖开始
-        api platform("software.amazon.awssdk:bom:${s3version}")
-        api "software.amazon.awssdk:s3"
-        api "software.amazon.awssdk:auth"
-        api "software.amazon.awssdk:regions"
-        api "software.amazon.awssdk:apache-client"
+//        api platform("software.amazon.awssdk:bom:${s3version}")
+        api "software.amazon.awssdk:s3:${s3version}"
+        api "software.amazon.awssdk:auth:${s3version}"
+        api "software.amazon.awssdk:regions:${s3version}"
+        api "software.amazon.awssdk:apache-client:${s3version}"
         // AWS依赖结束
 	}
 
