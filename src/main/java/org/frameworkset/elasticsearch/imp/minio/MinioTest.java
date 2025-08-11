@@ -28,6 +28,13 @@ import org.frameworkset.nosql.minio.MinioHelper;
  */
 public class MinioTest {
     public static void main(String[] args) throws Exception {
+        
+
+        
+        //操作minio
+        uploadWordFiles();
+    }
+    private static void initMinio(){
         //1. 初始化Minio数据源chan_fqa，用来操作Minio数据库，一个Minio数据源只需要定义一次即可，后续通过名称miniotest反复引用，多线程安全
         // 可以通过以下方法定义多个Minio数据源，只要name不同即可，通过名称引用对应的数据源
         MinioConfig minioConfig = new MinioConfig();
@@ -43,13 +50,29 @@ public class MinioTest {
 
         minioConfig.setMaxFilePartSize(10*1024*1024*1024);
         boolean result = MinioHelper.init(minioConfig);
+    }
+    
+    private static void uploadWordFiles() throws Exception {
+        initMinio();
 
         //获取数据源
         Minio minio = MinioHelper.getMinio("miniotest");
-        //操作minio
         minio.createBucket("filedown");
+//        minio.uploadObject("C:/data/wordfiles/以创新之火，点燃传统文化之光.docx","wordfiles","以创新之火，点燃传统文化之光.docx");
+        minio.uploadObject("C:/data/wordfiles/经济预测与决策试题(修改2稿).docx","wordfiles","subdir/经济预测与决策试题(修改2稿).docx");
+        
+    }
+
+    private static void minioTestFiles() throws Exception {
+        initMinio();
+
+        //获取数据源
+        Minio minio = MinioHelper.getMinio("miniotest");
+        minio.createBucket("filedown");
+        minio.uploadObject("C:/data/wordfiles/以创新之火，点燃传统文化之光.docx","wordfiles","以创新之火，点燃传统文化之光.docx");
         minio.uploadObject("C:/data/filedown/HN_BOSS_TRADE_202501092032_000001.txt","filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt");
         minio.downloadObject("filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt","C:/data/filedown/xxxxxaaaa.txt");
         minio.deleteOssFile("filedown","filedown/HN_BOSS_TRADE_202501092032_000001.txt");
     }
+    
 }
